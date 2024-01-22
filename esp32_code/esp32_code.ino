@@ -7,6 +7,7 @@
 #include <Adafruit_BME280.h>
 //mash code
 #include "painlessMesh.h"
+#include <Arduino_JSON.h>
 
 #define   MESH_PREFIX     "whateverYouLike"
 #define   MESH_PASSWORD   "somethingSneaky"
@@ -31,6 +32,24 @@ Adafruit_BME280 bme; // I2C
 //Adafruit_BME280 bme(BME_CS, BME_MOSI, BME_MISO, BME_SCK); // software SPI
 
 unsigned long delayTime;
+
+int nodeNumber = 3;
+String readings;
+
+String getReadings () {
+  JSONVar jsonReadings;
+  jsonReadings["node"] = nodeNumber;
+  jsonReadings["temp"] = bme.readTemperature();
+  jsonReadings["hum"] = bme.readHumidity();
+  jsonReadings["pres"] = bme.readPressure()/100.0F;
+  readings = JSON.stringify(jsonReadings);
+  return readings;
+}
+
+void sendMessage () {
+  String msg = getReadings();
+  mesh.sendBroadcast(msg);
+}
 
 
 void printValues() {
@@ -59,16 +78,9 @@ void printValues() {
 }
 
 // mash code
-void sendMessage() ; // Prototype so PlatformIO doesn't complain
 
 Task taskSendMessage( TASK_SECOND * 1 , TASK_FOREVER, &sendMessage );
 
-void sendMessage() {
-  String msg = "Hi from node ";
-  msg += mesh.getNodeId();
-  mesh.sendBroadcast( msg );
-  taskSendMessage.setInterval( random( TASK_SECOND * 1, TASK_SECOND * 5 ));
-}
 
 // Needed for painless library
 void receivedCallback( uint32_t from, String &msg ) {
