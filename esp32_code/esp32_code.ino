@@ -33,13 +33,13 @@ Adafruit_BME280 bme; // I2C
 
 unsigned long delayTime;
 
-int nodeNumber = 3;
+int nodeNumber = 1;
 String readings;
 
 String getReadings () {
   JSONVar jsonReadings;
   jsonReadings["node"] = nodeNumber;
-  jsonReadings["temp"] = bme.readTemperature();
+  jsonReadings["temp"] = bme.readTemperature()+273.15;
   jsonReadings["hum"] = bme.readHumidity();
   jsonReadings["pres"] = bme.readPressure()/100.0F;
   readings = JSON.stringify(jsonReadings);
