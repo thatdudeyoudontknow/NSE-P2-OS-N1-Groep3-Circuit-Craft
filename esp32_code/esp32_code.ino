@@ -88,7 +88,7 @@ void receivedCallback( uint32_t from, String &msg ) {
 }
 
 void newConnectionCallback(uint32_t nodeId) {
-    Serial.printf("--> startHere: New Connection, nodeId = %u\n", nodeId);
+    Serial.printf("--> startHere: New Connection, nodeId = %u\n", nodeNumber);
 }
 
 void changedConnectionCallback() {
