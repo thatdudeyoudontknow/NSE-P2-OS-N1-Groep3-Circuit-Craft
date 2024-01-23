@@ -185,6 +185,8 @@ void getLocalTime(char * time_buf, int time_buf_size) {
 
 void setup() {
   Serial.begin(115200);
+  glob_time_buf = (char*)malloc(glob_buf_size);
+  assert( glob_time_buf != NULL);
   WiFi_connect();
   SNTP_connect();
   
