@@ -9,12 +9,26 @@
 #include "painlessMesh.h"
 #include <Arduino_JSON.h>
 
-#define   MESH_PREFIX     "Circuit-Craft"
+#include "time.h"
+#include "esp_sntp.h"
+#include <WiFi.h>
+
+#define   MESH_PREFIX     "Circuit-Craft-Mash"
 #define   MESH_PASSWORD   "Hond1234"
 #define   MESH_PORT       5555
 
+#define ssid "Werner"
+#define password "Hond1234"
+
 Scheduler userScheduler; // to control your personal task
 painlessMesh  mesh;
+
+const char* ntpServer = "nl.pool.ntp.org";
+const long gtmOffset_sec = 3600;
+const int daylightOffset_sec = 3600;
+
+const int glob_buf_size = (64* sizeof(char));
+char *glob_time_buf;
 
 //sensor code
 
@@ -32,16 +46,19 @@ Adafruit_BME280 bme; // I2C
 //Adafruit_BME280 bme(BME_CS, BME_MOSI, BME_MISO, BME_SCK); // software SPI
 
 unsigned long delayTime;
+bool sntp_connected = false;
 
 int nodeNumber = 2;
 String readings;
 
 String getReadings () {
+  getLocalTime(glob_time_buf, glob_buf_size);
   JSONVar jsonReadings;
   jsonReadings["node"] = nodeNumber;
   jsonReadings["temp"] = bme.readTemperature()+273.15;
   jsonReadings["hum"] = bme.readHumidity();
   jsonReadings["pres"] = bme.readPressure()/100.0F;
+  jsonReadings["time"] = glob_time_buf;
   readings = JSON.stringify(jsonReadings);
   return readings;
 }
@@ -99,9 +116,78 @@ void nodeTimeAdjustedCallback(int32_t offset) {
     Serial.printf("Adjusted time %u. Offset = %d\n", mesh.getNodeTime(),offset);
 }
 
+void WiFi_connect(){
+Serial.println(" CONNECTING TO WIFI\r\n");
+/*verbind met de wifi volgens de ssid en password in in week1-3.h staan*/
+WiFi.begin(ssid, password);
+while (WiFi.status() != WL_CONNECTED) {
+/*print een punt af en toe als er geen verbinding is.*/
+delay(500);
+Serial.println(".");
+}
+/* print CONNECTED als er verbinding is */ 
+Serial.println(" WiFi CONNECTED\r\n");
+return;
+}
+
+void SNTP_connect() {
+  const time_t old_past = 1577836880;
+  Serial.println("\r\nConnect to SNTP server\n");
+
+  // Set SNTP operating mode before initializing
+  sntp_setoperatingmode(SNTP_OPMODE_POLL);
+
+  // Set SNTP server name
+  sntp_setservername(0, "pool.ntp.org");
+
+  // Initialize SNTP client
+  sntp_init();
+
+  // Set time zone
+  setenv("TZ", "CET-1CEST-2, M3.5.0/02:00:00,M10.5.0/03:00:00", 1);
+  tzset();
+
+  int retryCount = 0;
+
+  while (retryCount < 10) {
+    delay(500);
+    time_t now;
+    if (time(&now) < old_past) {
+      Serial.println(".");
+      retryCount++;
+    } else {
+      Serial.println(" SNTP CONNECTED\r\n");
+      sntp_connected = true;
+      return;  // Successful connection, exit the function
+    }
+  }
+
+  // If here, the function failed after 10 retries
+  Serial.println(" SNTP connection failed after 10 retries.\r\n");
+  sntp_stop();
+
+  // Optionally, you can perform additional actions or reset your device here
+  // For now, let's just return from the function
+  return;
+}
+
+
+/*function to get the current time*/
+void getLocalTime(char * time_buf, int time_buf_size) {
+  time_t now;
+  struct tm timeinfo;
+  time(&now);
+  localtime_r(&now, &timeinfo);
+  strftime(time_buf, time_buf_size, "%c", &timeinfo);
+  return;
+}
+
 
 void setup() {
   Serial.begin(115200);
+  WiFi_connect();
+  SNTP_connect();
+  
   Serial.println(F("BME280 test"));
 
   bool status;
@@ -128,6 +214,10 @@ void setup() {
   mesh.onNewConnection(&newConnectionCallback);
   mesh.onChangedConnections(&changedConnectionCallback);
   mesh.onNodeTimeAdjusted(&nodeTimeAdjustedCallback);
+
+  if(not sntp_connected){
+    SNTP_connect();
+  }
 
   userScheduler.addTask( taskSendMessage );
   taskSendMessage.enable();
