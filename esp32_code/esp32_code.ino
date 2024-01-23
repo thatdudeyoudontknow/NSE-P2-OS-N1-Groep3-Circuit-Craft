@@ -217,10 +217,6 @@ void setup() {
   mesh.onChangedConnections(&changedConnectionCallback);
   mesh.onNodeTimeAdjusted(&nodeTimeAdjustedCallback);
 
-  if(not sntp_connected){
-    SNTP_connect();
-  }
-
   userScheduler.addTask( taskSendMessage );
   taskSendMessage.enable();
 }
@@ -228,7 +224,11 @@ void setup() {
 
 void loop() { 
   //printValues();
-  delay(delayTime);
   //mash code
   mesh.update();
+  if(not sntp_connected){
+    SNTP_connect();
+  }
+  delay(delayTime);
+
 }
