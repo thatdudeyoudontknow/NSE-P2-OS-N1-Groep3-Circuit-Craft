@@ -9,12 +9,26 @@
 #include "painlessMesh.h"
 #include <Arduino_JSON.h>
 
-#define   MESH_PREFIX     "Circuit-Craft"
+#include "time.h"
+#include "esp_sntp.h"
+#include <WiFi.h>
+
+#define   MESH_PREFIX     "Circuit-Craft-Mash"
 #define   MESH_PASSWORD   "Hond1234"
 #define   MESH_PORT       5555
 
+#define ssid "Werner"
+#define password "Hond1234"
+
 Scheduler userScheduler; // to control your personal task
 painlessMesh  mesh;
+
+const char* ntpServer = "nl.pool.ntp.org";
+const long gtmOffset_sec = 3600;
+const int daylightOffset_sec = 3600;
+
+const int glob_buf_size = (64* sizeof(char));
+char *glob_time_buf;
 
 //sensor code
 
@@ -32,31 +46,26 @@ Adafruit_BME280 bme; // I2C
 //Adafruit_BME280 bme(BME_CS, BME_MOSI, BME_MISO, BME_SCK); // software SPI
 
 unsigned long delayTime;
-<<<<<<< Updated upstream
-=======
 bool sntp_connected = false;
 bool is_root = false;
->>>>>>> Stashed changes
 
 int nodeNumber = 1;
 String readings;
 String receivedTime;
 
 String getReadings () {
+  getLocalTime(glob_time_buf, glob_buf_size);
   JSONVar jsonReadings;
   jsonReadings["node"] = nodeNumber;
   jsonReadings["temp"] = bme.readTemperature()+273.15;
   jsonReadings["hum"] = bme.readHumidity();
   jsonReadings["pres"] = bme.readPressure()/100.0F;
-<<<<<<< Updated upstream
-=======
   if(is_root){
     jsonReadings["time"] = glob_time_buf;
   }
   else{
     jsonReadings["time"] = receivedTime;
   }
->>>>>>> Stashed changes
   readings = JSON.stringify(jsonReadings);
   return readings;
 }
@@ -118,11 +127,6 @@ void nodeTimeAdjustedCallback(int32_t offset) {
     Serial.printf("Adjusted time %u. Offset = %d\n", mesh.getNodeTime(),offset);
 }
 
-<<<<<<< Updated upstream
-
-void setup() {
-  Serial.begin(115200);
-=======
 void WiFi_connect(){
 int count = 0;
 Serial.println(" CONNECTING TO WIFI\r\n");
@@ -208,7 +212,6 @@ void setup() {
     is_root = true; //als er wifi is dan gedraagt hij zich als root.
   }
   
->>>>>>> Stashed changes
   Serial.println(F("BME280 test"));
 
   bool status;
@@ -243,11 +246,8 @@ void setup() {
 
 void loop() { 
   //printValues();
-  delay(delayTime);
   //mash code
   mesh.update();
-<<<<<<< Updated upstream
-=======
 
   if (is_root){
     getLocalTime(glob_time_buf, glob_buf_size);
@@ -257,5 +257,4 @@ void loop() {
   }
   delay(delayTime);
 
->>>>>>> Stashed changes
 }
