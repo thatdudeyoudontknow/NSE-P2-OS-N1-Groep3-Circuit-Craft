@@ -32,9 +32,15 @@ Adafruit_BME280 bme; // I2C
 //Adafruit_BME280 bme(BME_CS, BME_MOSI, BME_MISO, BME_SCK); // software SPI
 
 unsigned long delayTime;
+<<<<<<< Updated upstream
+=======
+bool sntp_connected = false;
+bool is_root = false;
+>>>>>>> Stashed changes
 
-int nodeNumber = 2;
+int nodeNumber = 1;
 String readings;
+String receivedTime;
 
 String getReadings () {
   JSONVar jsonReadings;
@@ -42,6 +48,15 @@ String getReadings () {
   jsonReadings["temp"] = bme.readTemperature()+273.15;
   jsonReadings["hum"] = bme.readHumidity();
   jsonReadings["pres"] = bme.readPressure()/100.0F;
+<<<<<<< Updated upstream
+=======
+  if(is_root){
+    jsonReadings["time"] = glob_time_buf;
+  }
+  else{
+    jsonReadings["time"] = receivedTime;
+  }
+>>>>>>> Stashed changes
   readings = JSON.stringify(jsonReadings);
   return readings;
 }
@@ -85,6 +100,10 @@ Task taskSendMessage( TASK_SECOND * 1 , TASK_FOREVER, &sendMessage );
 // Needed for painless library
 void receivedCallback( uint32_t from, String &msg ) {
   Serial.printf("startHere: Received from %u msg=%s\n", from, msg.c_str());
+  if (msg.startsWith("Time =") && !is_root) {
+    // Extract the time information from the message (assuming the format is "Time = <actual_time>")
+    receivedTime = msg.substring(7); // Skip "Time = "
+  }
 }
 
 void newConnectionCallback(uint32_t nodeId) {
@@ -99,9 +118,97 @@ void nodeTimeAdjustedCallback(int32_t offset) {
     Serial.printf("Adjusted time %u. Offset = %d\n", mesh.getNodeTime(),offset);
 }
 
+<<<<<<< Updated upstream
 
 void setup() {
   Serial.begin(115200);
+=======
+void WiFi_connect(){
+int count = 0;
+Serial.println(" CONNECTING TO WIFI\r\n");
+/*verbind met de wifi volgens de ssid en password in in week1-3.h staan*/
+WiFi.begin(ssid, password);
+while (WiFi.status() != WL_CONNECTED && count != 10) {
+/*print een punt af en toe als er geen verbinding is.*/
+delay(500);
+Serial.println(".");
+count ++;
+}
+if(WiFi.status() != WL_CONNECTED){
+  Serial.println("couldn't connect to WiFi");
+  WiFi.disconnect(true);
+  return;
+}
+/* print CONNECTED als er verbinding is */ 
+Serial.println(" WiFi CONNECTED\r\n");
+return;
+}
+
+void SNTP_connect() {
+  const time_t old_past = 1577836880;
+  Serial.println("\r\nConnect to SNTP server\n");
+
+  // Set SNTP operating mode before initializing
+  sntp_setoperatingmode(SNTP_OPMODE_POLL);
+
+  // Set SNTP server name
+  sntp_setservername(0, "pool.ntp.org");
+
+  // Initialize SNTP client
+  sntp_init();
+
+  // Set time zone
+  setenv("TZ", "CET-1CEST-2, M3.5.0/02:00:00,M10.5.0/03:00:00", 1);
+  tzset();
+
+  int retryCount = 0;
+
+  while (not sntp_connected) {
+    delay(500);
+    time_t now;
+    if (time(&now) < old_past) {
+      Serial.println(".");
+      retryCount++;
+    } else {
+      Serial.println(" SNTP CONNECTED\r\n");
+      sntp_connected = true;
+      return;  // Successful connection, exit the function
+    }
+  }
+
+  // If here, the function failed after 10 retries
+  Serial.println(" SNTP connection failed after 10 retries.\r\n");
+  sntp_stop();
+
+  // Optionally, you can perform additional actions or reset your device here
+  // For now, let's just return from the function
+  return;
+}
+
+
+/*function to get the current time*/
+void getLocalTime(char * time_buf, int time_buf_size) {
+  time_t now;
+  struct tm timeinfo;
+  time(&now);
+  localtime_r(&now, &timeinfo);
+  strftime(time_buf, time_buf_size, "%c", &timeinfo);
+  return;
+}
+
+
+void setup() {
+  Serial.begin(115200);
+  glob_time_buf = (char*)malloc(glob_buf_size);
+  assert( glob_time_buf != NULL);
+  WiFi_connect();
+
+  if (WiFi.status() == WL_CONNECTED){
+    SNTP_connect();
+    is_root = true; //als er wifi is dan gedraagt hij zich als root.
+  }
+  
+>>>>>>> Stashed changes
   Serial.println(F("BME280 test"));
 
   bool status;
@@ -139,4 +246,16 @@ void loop() {
   delay(delayTime);
   //mash code
   mesh.update();
+<<<<<<< Updated upstream
+=======
+
+  if (is_root){
+    getLocalTime(glob_time_buf, glob_buf_size);
+    String msg = "Time = " + String(glob_time_buf);
+    mesh.sendBroadcast(msg);
+
+  }
+  delay(delayTime);
+
+>>>>>>> Stashed changes
 }
