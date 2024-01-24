@@ -1,0 +1,525 @@
+[
+    {
+        "id": "2708ca736f9ddaef",
+        "type": "tab",
+        "label": "Air Pressure",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "94060c540c7dac68",
+        "type": "tab",
+        "label": "Webpage (test)",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "8548562943f58ea9",
+        "type": "tab",
+        "label": "Temperature",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "c87cbe625ce66946",
+        "type": "ui_tab",
+        "name": "Measurements",
+        "icon": "dashboard",
+        "disabled": false,
+        "hidden": false
+    },
+    {
+        "id": "ca116f7307ceda5e",
+        "type": "ui_base",
+        "theme": {
+            "name": "theme-dark",
+            "lightTheme": {
+                "default": "#0094CE",
+                "baseColor": "#0094CE",
+                "baseFont": "-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Oxygen-Sans,Ubuntu,Cantarell,Helvetica Neue,sans-serif",
+                "edited": true,
+                "reset": false
+            },
+            "darkTheme": {
+                "default": "#097479",
+                "baseColor": "#097479",
+                "baseFont": "-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Oxygen-Sans,Ubuntu,Cantarell,Helvetica Neue,sans-serif",
+                "edited": true,
+                "reset": false
+            },
+            "customTheme": {
+                "name": "Untitled Theme 1",
+                "default": "#4B7930",
+                "baseColor": "#4B7930",
+                "baseFont": "-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Oxygen-Sans,Ubuntu,Cantarell,Helvetica Neue,sans-serif"
+            },
+            "themeState": {
+                "base-color": {
+                    "default": "#097479",
+                    "value": "#097479",
+                    "edited": false
+                },
+                "page-titlebar-backgroundColor": {
+                    "value": "#097479",
+                    "edited": false
+                },
+                "page-backgroundColor": {
+                    "value": "#111111",
+                    "edited": false
+                },
+                "page-sidebar-backgroundColor": {
+                    "value": "#333333",
+                    "edited": false
+                },
+                "group-textColor": {
+                    "value": "#0eb8c0",
+                    "edited": false
+                },
+                "group-borderColor": {
+                    "value": "#555555",
+                    "edited": false
+                },
+                "group-backgroundColor": {
+                    "value": "#333333",
+                    "edited": false
+                },
+                "widget-textColor": {
+                    "value": "#eeeeee",
+                    "edited": false
+                },
+                "widget-backgroundColor": {
+                    "value": "#097479",
+                    "edited": false
+                },
+                "widget-borderColor": {
+                    "value": "#333333",
+                    "edited": false
+                },
+                "base-font": {
+                    "value": "-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Oxygen-Sans,Ubuntu,Cantarell,Helvetica Neue,sans-serif"
+                }
+            },
+            "angularTheme": {
+                "primary": "indigo",
+                "accents": "blue",
+                "warn": "red",
+                "background": "grey",
+                "palette": "light"
+            }
+        },
+        "site": {
+            "name": "Node-RED Dashboard",
+            "hideToolbar": "false",
+            "allowSwipe": "false",
+            "lockMenu": "false",
+            "allowTempTheme": "true",
+            "dateFormat": "DD/MM/YYYY",
+            "sizes": {
+                "sx": 100,
+                "sy": 40,
+                "gx": 6,
+                "gy": 6,
+                "cx": 6,
+                "cy": 6,
+                "px": 0,
+                "py": 0
+            }
+        }
+    },
+    {
+        "id": "3c5f46a39adeb5ef",
+        "type": "ui_group",
+        "name": "Air Pressure",
+        "tab": "c87cbe625ce66946",
+        "order": 1,
+        "disp": true,
+        "width": 8,
+        "collapse": false,
+        "className": ""
+    },
+    {
+        "id": "6724995863dfb4ab",
+        "type": "ui_group",
+        "name": "Temperature",
+        "tab": "c87cbe625ce66946",
+        "order": 2,
+        "disp": true,
+        "width": "8",
+        "collapse": false,
+        "className": ""
+    },
+    {
+        "id": "317148c055307fc2",
+        "type": "ui_slider",
+        "z": "2708ca736f9ddaef",
+        "name": "",
+        "label": "slider",
+        "tooltip": "",
+        "group": "3c5f46a39adeb5ef",
+        "order": 1,
+        "width": 0,
+        "height": 0,
+        "passthru": true,
+        "outs": "all",
+        "topic": "topic",
+        "topicType": "msg",
+        "min": 0,
+        "max": "5000",
+        "step": "100",
+        "className": "",
+        "x": 270,
+        "y": 320,
+        "wires": [
+            [
+                "f8a0339cfda7f75a",
+                "2a59629a3330b3c9",
+                "12b7b03ffa2756e8",
+                "683b2c88977d25a7"
+            ]
+        ]
+    },
+    {
+        "id": "12b7b03ffa2756e8",
+        "type": "ui_gauge",
+        "z": "2708ca736f9ddaef",
+        "name": "",
+        "group": "3c5f46a39adeb5ef",
+        "order": 2,
+        "width": 0,
+        "height": 0,
+        "gtype": "gage",
+        "title": "gauge",
+        "label": "units",
+        "format": "{{value}}",
+        "min": 0,
+        "max": "5000",
+        "colors": [
+            "#00b500",
+            "#ddb903",
+            "#ca3838"
+        ],
+        "seg1": "1100",
+        "seg2": "2000",
+        "diff": false,
+        "className": "",
+        "x": 570,
+        "y": 380,
+        "wires": []
+    },
+    {
+        "id": "2a59629a3330b3c9",
+        "type": "ui_chart",
+        "z": "2708ca736f9ddaef",
+        "name": "",
+        "group": "3c5f46a39adeb5ef",
+        "order": 4,
+        "width": 0,
+        "height": 0,
+        "label": "Line Chart",
+        "chartType": "line",
+        "legend": "false",
+        "xformat": "HH:mm:ss",
+        "interpolate": "linear",
+        "nodata": "",
+        "dot": false,
+        "ymin": "",
+        "ymax": "",
+        "removeOlder": 1,
+        "removeOlderPoints": "",
+        "removeOlderUnit": "3600",
+        "cutout": 0,
+        "useOneColor": false,
+        "useUTC": false,
+        "colors": [
+            "#1f77b4",
+            "#aec7e8",
+            "#ff7f0e",
+            "#2ca02c",
+            "#98df8a",
+            "#d62728",
+            "#ff9896",
+            "#9467bd",
+            "#c5b0d5"
+        ],
+        "outputs": 1,
+        "useDifferentColor": false,
+        "className": "",
+        "x": 550,
+        "y": 600,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "f8a0339cfda7f75a",
+        "type": "ui_chart",
+        "z": "2708ca736f9ddaef",
+        "name": "",
+        "group": "3c5f46a39adeb5ef",
+        "order": 3,
+        "width": 0,
+        "height": 0,
+        "label": "Bar Chart",
+        "chartType": "bar",
+        "legend": "false",
+        "xformat": "HH:mm:ss",
+        "interpolate": "linear",
+        "nodata": "",
+        "dot": false,
+        "ymin": "",
+        "ymax": "",
+        "removeOlder": 1,
+        "removeOlderPoints": "",
+        "removeOlderUnit": "3600",
+        "cutout": 0,
+        "useOneColor": false,
+        "useUTC": false,
+        "colors": [
+            "#1f77b4",
+            "#aec7e8",
+            "#ff7f0e",
+            "#2ca02c",
+            "#98df8a",
+            "#d62728",
+            "#ff9896",
+            "#9467bd",
+            "#c5b0d5"
+        ],
+        "outputs": 1,
+        "useDifferentColor": false,
+        "className": "",
+        "x": 540,
+        "y": 500,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "683b2c88977d25a7",
+        "type": "debug",
+        "z": "2708ca736f9ddaef",
+        "name": "debug 1",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 720,
+        "y": 320,
+        "wires": []
+    },
+    {
+        "id": "1e1b3c7d1280f1ea",
+        "type": "http in",
+        "z": "2708ca736f9ddaef",
+        "name": "",
+        "url": "/Mendel_University",
+        "method": "get",
+        "upload": false,
+        "swaggerDoc": "",
+        "x": 100,
+        "y": 320,
+        "wires": [
+            [
+                "317148c055307fc2"
+            ]
+        ]
+    },
+    {
+        "id": "3fb38f5e79dd400d",
+        "type": "http response",
+        "z": "94060c540c7dac68",
+        "name": "",
+        "statusCode": "",
+        "headers": {},
+        "x": 670,
+        "y": 340,
+        "wires": []
+    },
+    {
+        "id": "71a1599a413a99c3",
+        "type": "http in",
+        "z": "94060c540c7dac68",
+        "name": "",
+        "url": "/test1/",
+        "method": "get",
+        "upload": false,
+        "swaggerDoc": "",
+        "x": 180,
+        "y": 320,
+        "wires": [
+            [
+                "ec8b2fd0d5693c42"
+            ]
+        ]
+    },
+    {
+        "id": "ec8b2fd0d5693c42",
+        "type": "template",
+        "z": "94060c540c7dac68",
+        "name": "",
+        "field": "payload",
+        "fieldType": "msg",
+        "format": "handlebars",
+        "syntax": "mustache",
+        "template": "<html>\n    <head>\n        <title>Projectdashboard!</title>\n    </head>\n    <body>\n        <h1>Hello World!</h1>\n        <p>Onze grafiek hier</p>\n    </body>\n</html>",
+        "output": "str",
+        "x": 360,
+        "y": 180,
+        "wires": [
+            [
+                "3fb38f5e79dd400d"
+            ]
+        ]
+    },
+    {
+        "id": "89676b28fb4ef0ea",
+        "type": "ui_gauge",
+        "z": "8548562943f58ea9",
+        "name": "",
+        "group": "6724995863dfb4ab",
+        "order": 2,
+        "width": 0,
+        "height": 0,
+        "gtype": "gage",
+        "title": "meter",
+        "label": "units",
+        "format": "{{value}}",
+        "min": 0,
+        "max": "50",
+        "colors": [
+            "#2ae6f4",
+            "#04fb35",
+            "#ff0000"
+        ],
+        "seg1": "10",
+        "seg2": "28",
+        "diff": false,
+        "className": "",
+        "x": 450,
+        "y": 420,
+        "wires": []
+    },
+    {
+        "id": "f5847d471eed86d9",
+        "type": "ui_slider",
+        "z": "8548562943f58ea9",
+        "name": "",
+        "label": "slider",
+        "tooltip": "",
+        "group": "6724995863dfb4ab",
+        "order": 1,
+        "width": 0,
+        "height": 0,
+        "passthru": true,
+        "outs": "all",
+        "topic": "topic",
+        "topicType": "msg",
+        "min": 0,
+        "max": "50",
+        "step": "1",
+        "className": "graden",
+        "x": 170,
+        "y": 400,
+        "wires": [
+            [
+                "89676b28fb4ef0ea",
+                "208ce4dd6eca7dec",
+                "2048be42c6e971c0"
+            ]
+        ]
+    },
+    {
+        "id": "208ce4dd6eca7dec",
+        "type": "ui_chart",
+        "z": "8548562943f58ea9",
+        "name": "",
+        "group": "6724995863dfb4ab",
+        "order": 4,
+        "width": 0,
+        "height": 0,
+        "label": "Line Chart",
+        "chartType": "line",
+        "legend": "false",
+        "xformat": "HH:mm:ss",
+        "interpolate": "linear",
+        "nodata": "",
+        "dot": false,
+        "ymin": "",
+        "ymax": "",
+        "removeOlder": "10",
+        "removeOlderPoints": "",
+        "removeOlderUnit": "60",
+        "cutout": 0,
+        "useOneColor": false,
+        "useUTC": false,
+        "colors": [
+            "#1f77b4",
+            "#aec7e8",
+            "#ff7f0e",
+            "#2ca02c",
+            "#98df8a",
+            "#d62728",
+            "#ff9896",
+            "#9467bd",
+            "#c5b0d5"
+        ],
+        "outputs": 1,
+        "useDifferentColor": false,
+        "className": "",
+        "x": 490,
+        "y": 520,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "2048be42c6e971c0",
+        "type": "ui_chart",
+        "z": "8548562943f58ea9",
+        "name": "",
+        "group": "6724995863dfb4ab",
+        "order": 3,
+        "width": 0,
+        "height": 0,
+        "label": "Bar Chart",
+        "chartType": "bar",
+        "legend": "false",
+        "xformat": "HH:mm:ss",
+        "interpolate": "linear",
+        "nodata": "",
+        "dot": false,
+        "ymin": "",
+        "ymax": "",
+        "removeOlder": 1,
+        "removeOlderPoints": "",
+        "removeOlderUnit": "3600",
+        "cutout": 0,
+        "useOneColor": false,
+        "useUTC": false,
+        "colors": [
+            "#1f77b4",
+            "#aec7e8",
+            "#ff7f0e",
+            "#2ca02c",
+            "#98df8a",
+            "#d62728",
+            "#ff9896",
+            "#9467bd",
+            "#c5b0d5"
+        ],
+        "outputs": 1,
+        "useDifferentColor": false,
+        "className": "",
+        "x": 480,
+        "y": 580,
+        "wires": [
+            []
+        ]
+    }
+]
