@@ -8,7 +8,7 @@
 //mash code
 #include "painlessMesh.h"
 #include <Arduino_JSON.h>
-
+#include <HTTPClient.h>
 #include "time.h"
 #include "esp_sntp.h"
 #include <WiFi.h>
@@ -20,6 +20,7 @@
 #define ssid "Werner"
 #define password "Hond1234"
 
+#define node_red_server "http://192.168.137.1:5000/test"
 Scheduler userScheduler; // to control your personal task
 painlessMesh  mesh;
 
@@ -67,6 +68,9 @@ String getReadings () {
     jsonReadings["time"] = receivedTime;
   }
   readings = JSON.stringify(jsonReadings);
+  if(is_root){
+    sendData(readings, node_red_server );
+  }
   return readings;
 }
 
@@ -112,6 +116,9 @@ void receivedCallback( uint32_t from, String &msg ) {
   if (msg.startsWith("Time =") && !is_root) {
     // Extract the time information from the message (assuming the format is "Time = <actual_time>")
     receivedTime = msg.substring(7); // Skip "Time = "
+  }
+  else if(is_root){
+    sendData(msg.c_str(), node_red_server );
   }
 }
 
@@ -198,6 +205,32 @@ void getLocalTime(char * time_buf, int time_buf_size) {
   localtime_r(&now, &timeinfo);
   strftime(time_buf, time_buf_size, "%c", &timeinfo);
   return;
+}
+
+void sendData(String data, String endpoint) {
+  HTTPClient http;
+  http.begin(endpoint); 
+  http.addHeader("Content-Type", "application/json");
+
+  // Create a JSON payload
+  String jsonPayload = String(data);
+
+  Serial.print("JSON Payload: ");
+  Serial.println(jsonPayload);
+
+
+  // Send the POST request with JSON payload
+  int httpResponseCode = http.POST(jsonPayload);
+
+  if (httpResponseCode > 0) {
+    Serial.print("HTTP Response code: ");
+    Serial.println(httpResponseCode);
+  } else {
+    Serial.print("HTTP POST request failed, error: ");
+    Serial.println(httpResponseCode);
+  }
+
+  http.end();
 }
 
 
