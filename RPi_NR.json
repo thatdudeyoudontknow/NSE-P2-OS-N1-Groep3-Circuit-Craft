@@ -1,0 +1,173 @@
+[
+    {
+        "id": "94060c540c7dac68",
+        "type": "tab",
+        "label": "RPi with Node-Red",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "4f2bee9b83eac1ef",
+        "type": "ui_gauge",
+        "z": "94060c540c7dac68",
+        "name": "temperature",
+        "group": "7d47614b3681b36b",
+        "order": 0,
+        "width": 0,
+        "height": 0,
+        "gtype": "gage",
+        "title": "gauge",
+        "label": "Kelvin",
+        "format": "{{value}}",
+        "min": "253,15",
+        "max": "313,15",
+        "colors": [
+            "#47daff",
+            "#0aff3b",
+            "#ca3838"
+        ],
+        "seg1": "273,15",
+        "seg2": "294,15",
+        "diff": false,
+        "className": "",
+        "x": 630,
+        "y": 300,
+        "wires": []
+    },
+    {
+        "id": "45c7b908ac9acb99",
+        "type": "function",
+        "z": "94060c540c7dac68",
+        "name": "temperature",
+        "func": "var o = msg.payload\nmsg.payload = o.temperature\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 370,
+        "y": 300,
+        "wires": [
+            [
+                "4f2bee9b83eac1ef"
+            ]
+        ]
+    },
+    {
+        "id": "7f61c8584f8fc918",
+        "type": "ui_gauge",
+        "z": "94060c540c7dac68",
+        "name": "humidity",
+        "group": "7d47614b3681b36b",
+        "order": 0,
+        "width": 0,
+        "height": 0,
+        "gtype": "gage",
+        "title": "humidity",
+        "label": "%",
+        "format": "{{value}}",
+        "min": "0",
+        "max": "100",
+        "colors": [
+            "#00ff04",
+            "#fbff0f",
+            "#9c0707"
+        ],
+        "seg1": "70",
+        "seg2": "80",
+        "diff": false,
+        "className": "",
+        "x": 620,
+        "y": 360,
+        "wires": []
+    },
+    {
+        "id": "263e366cbdff8d2b",
+        "type": "function",
+        "z": "94060c540c7dac68",
+        "name": "humidity",
+        "func": "var o = msg.payload\nmsg.payload = o.humidity\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 360,
+        "y": 360,
+        "wires": [
+            [
+                "7f61c8584f8fc918"
+            ]
+        ]
+    },
+    {
+        "id": "e059f9caf00669f8",
+        "type": "ui_gauge",
+        "z": "94060c540c7dac68",
+        "name": "pressure",
+        "group": "7d47614b3681b36b",
+        "order": 0,
+        "width": 0,
+        "height": 0,
+        "gtype": "gage",
+        "title": "pressure",
+        "label": "Bar",
+        "format": "{{value}}",
+        "min": "0.98",
+        "max": "1.05",
+        "colors": [
+            "#ffffff",
+            "#ffffff",
+            "#ffffff"
+        ],
+        "seg1": "",
+        "seg2": "",
+        "diff": false,
+        "className": "",
+        "x": 620,
+        "y": 420,
+        "wires": []
+    },
+    {
+        "id": "4725e75b9ddf521e",
+        "type": "function",
+        "z": "94060c540c7dac68",
+        "name": "pressure",
+        "func": "var o = msg.payload\nmsg.payload = o.pressure\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 360,
+        "y": 420,
+        "wires": [
+            [
+                "e059f9caf00669f8"
+            ]
+        ]
+    },
+    {
+        "id": "7d47614b3681b36b",
+        "type": "ui_group",
+        "name": "Measurements",
+        "tab": "cf3653bb5fa876ff",
+        "order": 1,
+        "disp": true,
+        "width": "6",
+        "collapse": false,
+        "className": "temperature"
+    },
+    {
+        "id": "cf3653bb5fa876ff",
+        "type": "ui_tab",
+        "name": "Raspberry",
+        "icon": "dashboard",
+        "disabled": false,
+        "hidden": false
+    }
+]
