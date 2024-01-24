@@ -54,13 +54,13 @@ String readings;
 String receivedTime;
 
 String getReadings () {
-  getLocalTime(glob_time_buf, glob_buf_size);
   JSONVar jsonReadings;
   jsonReadings["node"] = nodeNumber;
   jsonReadings["temp"] = bme.readTemperature()+273.15;
   jsonReadings["hum"] = bme.readHumidity();
   jsonReadings["pres"] = bme.readPressure()/100.0F;
   if(is_root){
+    getLocalTime(glob_time_buf, glob_buf_size);
     jsonReadings["time"] = glob_time_buf;
   }
   else{
