@@ -54,7 +54,7 @@ Adafruit_BME280 bme; // I2C
 unsigned long delayTime;
 bool sntp_connected = false;
 
-int nodeNumber = 1; // unique identifier for each node
+int nodeNumber = 0; // unique identifier for each node
 int rootNodeID = nodeNumber; // start with the assumption that this node is the root
 bool is_root = true;
 
@@ -228,7 +228,11 @@ void getLocalTime(char * time_buf, int time_buf_size) {
 }
 
 void sendData(String data, String endpoint) {
-  return;
+  if(elect_time+max_elect_time > millis()){
+    Serial.println("Electing so not sending data");
+    return;
+  }
+  return; //skip sending data for. THIS MUST BE REMOVED.
   HTTPClient http;
   http.begin(endpoint); 
   http.addHeader("Content-Type", "application/json");
