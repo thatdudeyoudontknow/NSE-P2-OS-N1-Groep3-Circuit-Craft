@@ -59,7 +59,6 @@ String readings;
 String receivedTime;
 
 void checkRootMessage(String msg) {
-  Serial.println(msg);
   int receivedID = msg.toInt();
   if (receivedID <= rootNodeID) {
     root_time = millis();
