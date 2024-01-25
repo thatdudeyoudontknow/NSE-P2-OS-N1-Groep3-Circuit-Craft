@@ -62,7 +62,7 @@ void checkRootMessage(String msg) {
   Serial.println(msg);
   int receivedID = msg.toInt();
   if (receivedID <= rootNodeID) {
-    root_time = milis();
+    root_time = millis();
     rootNodeID = receivedID;
     is_root = false;
   }
@@ -316,12 +316,11 @@ void loop() {
   }
   else{
     digitalWrite(LED_PIN, LOW);
-  }
-
-  if(root_time+10000 > milils() && rootNodeID != nodeNumber){
-    Serial.println("timeout");
-    is_root=true;
-    rootNodeID = nodeNumber;
+    if(root_time+10000 < millis()){
+      Serial.println("timeout");
+      is_root=true;
+      rootNodeID = nodeNumber;
+    }
   }
 
 
