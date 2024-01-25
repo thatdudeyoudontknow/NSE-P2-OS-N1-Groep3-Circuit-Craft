@@ -54,7 +54,7 @@ Adafruit_BME280 bme; // I2C
 unsigned long delayTime;
 bool sntp_connected = false;
 
-int nodeNumber = 2;          // unique identifier for each node
+int nodeNumber = 0;          // unique identifier for each node
 int rootNodeID = nodeNumber; // start with the assumption that this node is the root
 bool is_root = true;
 
@@ -66,15 +66,18 @@ void checkRootMessage(String msg, int rssi)
   int receivedID = msg.toInt();
   Serial.println("Received ID: " + String(receivedID));
   Serial.println("Received RSSI: " + String(rssi));
+  
+  // Check if the received node has a different ID and a stronger signal (higher RSSI)
   if (receivedID != nodeNumber && rssi > rootRSSI)
   {
     rootRSSI = rssi;
     rootNodeID = receivedID;
-    is_root = false;
+    is_root = (rootNodeID == nodeNumber); // Set is_root to true only if this node is the new root
     Serial.println("New root ID: " + String(rootNodeID));
     Serial.println("New root RSSI: " + String(rootRSSI));
   }
 }
+
 
 String getReadings()
 {
