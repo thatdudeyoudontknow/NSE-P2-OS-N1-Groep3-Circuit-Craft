@@ -21,6 +21,7 @@
 #define password "Hond1234"
 
 #define node_red_server "http://192.168.137.1:5000/test"
+#define LED_PIN 4
 Scheduler userScheduler; // to control your personal task
 painlessMesh  mesh;
 
@@ -30,6 +31,7 @@ const int daylightOffset_sec = 3600;
 
 const int glob_buf_size = (64* sizeof(char));
 char *glob_time_buf;
+long root_time;
 
 //sensor code
 
@@ -48,11 +50,28 @@ Adafruit_BME280 bme; // I2C
 
 unsigned long delayTime;
 bool sntp_connected = false;
-bool is_root = false;
 
-int nodeNumber = 1;
+int nodeNumber = 2; // unique identifier for each node
+int rootNodeID = nodeNumber; // start with the assumption that this node is the root
+bool is_root = true;
+
 String readings;
 String receivedTime;
+
+void checkRootMessage(String msg) {
+  Serial.println(msg);
+  int receivedID = msg.toInt();
+  if (receivedID <= rootNodeID) {
+    root_time = milis();
+    rootNodeID = receivedID;
+    is_root = false;
+  }
+}
+
+void sendRootMessage() {
+  String msg ="nummer: " + String(nodeNumber);
+  mesh.sendBroadcast(msg);
+}
 
 String getReadings () {
   JSONVar jsonReadings;
@@ -117,7 +136,10 @@ void receivedCallback( uint32_t from, String &msg ) {
     // Extract the time information from the message (assuming the format is "Time = <actual_time>")
     receivedTime = msg.substring(7); // Skip "Time = "
   }
-  else if(is_root){
+  else if (msg.startsWith("nummer: ")) { 
+    checkRootMessage(msg.substring(8));
+  }
+  else if(is_root && msg.startsWith("{")){
     sendData(msg.c_str(), node_red_server );
   }
 }
@@ -132,6 +154,7 @@ void changedConnectionCallback() {
 
 void nodeTimeAdjustedCallback(int32_t offset) {
     Serial.printf("Adjusted time %u. Offset = %d\n", mesh.getNodeTime(),offset);
+    
 }
 
 void WiFi_connect(){
@@ -208,6 +231,7 @@ void getLocalTime(char * time_buf, int time_buf_size) {
 }
 
 void sendData(String data, String endpoint) {
+  return;
   HTTPClient http;
   http.begin(endpoint); 
   http.addHeader("Content-Type", "application/json");
@@ -237,13 +261,13 @@ void sendData(String data, String endpoint) {
 
 void setup() {
   Serial.begin(115200);
+  pinMode(LED_PIN, OUTPUT);
   glob_time_buf = (char*)malloc(glob_buf_size);
   assert( glob_time_buf != NULL);
   WiFi_connect();
 
   if (WiFi.status() == WL_CONNECTED){
     SNTP_connect();
-    is_root = true; //als er wifi is dan gedraagt hij zich als root.
   }
   
   Serial.println(F("BME280 test"));
@@ -282,13 +306,25 @@ void loop() {
   //printValues();
   //mash code
   mesh.update();
-
+  sendRootMessage();
   if (is_root){
     getLocalTime(glob_time_buf, glob_buf_size);
-    String msg = "Time = " + String(glob_time_buf);
-    mesh.sendBroadcast(msg);
-
+    String time_msg = "Time = " + String(glob_time_buf);
+    mesh.sendBroadcast(time_msg);
+    //Serial.println("ik ben root");
+    digitalWrite(LED_PIN, HIGH);
   }
+  else{
+    digitalWrite(LED_PIN, LOW);
+  }
+
+  if(root_time+10000 > milils() && rootNodeID != nodeNumber){
+    Serial.println("timeout");
+    is_root=true;
+    rootNodeID = nodeNumber;
+  }
+
+
   delay(delayTime);
 
 }
