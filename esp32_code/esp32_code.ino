@@ -28,6 +28,7 @@ painlessMesh  mesh;
 const char* ntpServer = "nl.pool.ntp.org";
 const long gtmOffset_sec = 3600;
 const int daylightOffset_sec = 3600;
+int rootRSSI = -100;  // Initial value set to a low signal strength
 
 const int glob_buf_size = (64* sizeof(char));
 char *glob_time_buf;
@@ -58,19 +59,26 @@ bool is_root = true;
 String readings;
 String receivedTime;
 
-void checkRootMessage(String msg) {
+
+
+void checkRootMessage(String msg, int rssi) {
   int receivedID = msg.toInt();
-  if (receivedID <= rootNodeID) {
-    root_time = millis();
+  if (receivedID != nodeNumber && rssi > rootRSSI) {
+    rootRSSI = rssi;
     rootNodeID = receivedID;
     is_root = false;
   }
 }
 
+
+
+
+
 void sendRootMessage() {
-  String msg ="nummer: " + String(nodeNumber);
+  String msg = "nummer: " + String(nodeNumber) + " RSSI: " + String(WiFi.RSSI());
   mesh.sendBroadcast(msg);
 }
+
 
 String getReadings () {
   JSONVar jsonReadings;
@@ -128,20 +136,26 @@ void printValues() {
 Task taskSendMessage( TASK_SECOND * 30 , TASK_FOREVER, &sendMessage );
 
 
-// Needed for painless library
-void receivedCallback( uint32_t from, String &msg ) {
-  Serial.printf("startHere: Received from %u msg=%s\n", from, msg.c_str());
+
+
+void receivedCallbackWrapper(uint32_t from, String &msg) {
+  receivedCallback(from, msg, WiFi.RSSI());
+}
+
+void receivedCallback(uint32_t from, String &msg, int32_t rssi) {
+  Serial.printf("startHere: Received from %u msg=%s with RSSI=%d\n", from, msg.c_str(), rssi);
   if (msg.startsWith("Time =") && !is_root) {
     // Extract the time information from the message (assuming the format is "Time = <actual_time>")
     receivedTime = msg.substring(7); // Skip "Time = "
-  }
-  else if (msg.startsWith("nummer: ")) { 
-    checkRootMessage(msg.substring(8));
-  }
-  else if(is_root && msg.startsWith("{")){
+  } else if (msg.startsWith("nummer: ")) { 
+    checkRootMessage(msg.substring(8), rssi);
+  } else if(is_root && msg.startsWith("{")){
     sendData(msg.c_str(), node_red_server );
   }
 }
+
+
+
 
 void newConnectionCallback(uint32_t nodeId) {
     Serial.printf("--> startHere: New Connection, nodeId = %u\n", nodeNumber);
@@ -291,7 +305,8 @@ void setup() {
   mesh.setDebugMsgTypes( ERROR | STARTUP );  // set before init() so that you can see startup messages
 
   mesh.init( MESH_PREFIX, MESH_PASSWORD, &userScheduler, MESH_PORT );
-  mesh.onReceive(&receivedCallback);
+ 
+  mesh.onReceive(&receivedCallbackWrapper);
   mesh.onNewConnection(&newConnectionCallback);
   mesh.onChangedConnections(&changedConnectionCallback);
   mesh.onNodeTimeAdjusted(&nodeTimeAdjustedCallback);
@@ -312,6 +327,8 @@ void loop() {
     mesh.sendBroadcast(time_msg);
     //Serial.println("ik ben root");
     digitalWrite(LED_PIN, HIGH);
+    Serial.print("Root RSSI: ");
+    Serial.println(rootRSSI);
   }
   else{
     digitalWrite(LED_PIN, LOW);
@@ -319,10 +336,9 @@ void loop() {
       Serial.println("timeout");
       is_root=true;
       rootNodeID = nodeNumber;
+      rootRSSI = -100;  // Reset RSSI when becoming root
     }
   }
 
-
   delay(delayTime);
-
 }
