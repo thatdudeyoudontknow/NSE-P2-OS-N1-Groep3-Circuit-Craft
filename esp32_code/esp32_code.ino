@@ -32,6 +32,9 @@ const int daylightOffset_sec = 3600;
 const int glob_buf_size = (64* sizeof(char));
 char *glob_time_buf;
 long root_time;
+int max_root_time = 60000;
+long elect_time;
+int max_elect_time = 15000;
 
 //sensor code
 
@@ -51,7 +54,7 @@ Adafruit_BME280 bme; // I2C
 unsigned long delayTime;
 bool sntp_connected = false;
 
-int nodeNumber = 2; // unique identifier for each node
+int nodeNumber = 1; // unique identifier for each node
 int rootNodeID = nodeNumber; // start with the assumption that this node is the root
 bool is_root = true;
 
@@ -65,11 +68,6 @@ void checkRootMessage(String msg) {
     rootNodeID = receivedID;
     is_root = false;
   }
-}
-
-void sendRootMessage() {
-  String msg ="nummer: " + String(nodeNumber);
-  mesh.sendBroadcast(msg);
 }
 
 String getReadings () {
@@ -125,7 +123,7 @@ void printValues() {
 
 // mash code
 
-Task taskSendMessage( TASK_SECOND * 30 , TASK_FOREVER, &sendMessage );
+Task taskSendMessage( TASK_SECOND * 1 , TASK_FOREVER, &sendMessage );
 
 
 // Needed for painless library
@@ -257,6 +255,27 @@ void sendData(String data, String endpoint) {
   return;
 }
 
+void rootElection() {
+  String msg ="nummer: " + String(nodeNumber);
+  mesh.sendBroadcast(msg);
+
+  if(root_time+10000 < millis() && is_root==false){
+      Serial.println("timeout");
+      is_root=true;
+      rootNodeID = nodeNumber;
+      elect_time = millis();
+  }
+
+  if(elect_time+max_elect_time < millis()){
+    Serial.println("elect over");
+    taskSendMessage.enable();
+  }
+  else{
+    Serial.println("root electing");
+    taskSendMessage.disable();
+  }
+}
+
 
 void setup() {
   Serial.begin(115200);
@@ -297,7 +316,7 @@ void setup() {
   mesh.onNodeTimeAdjusted(&nodeTimeAdjustedCallback);
 
   userScheduler.addTask( taskSendMessage );
-  taskSendMessage.enable();
+  elect_time = millis();
 }
 
 
@@ -305,7 +324,7 @@ void loop() {
   //printValues();
   //mash code
   mesh.update();
-  sendRootMessage();
+  rootElection();
   if (is_root){
     getLocalTime(glob_time_buf, glob_buf_size);
     String time_msg = "Time = " + String(glob_time_buf);
@@ -315,13 +334,7 @@ void loop() {
   }
   else{
     digitalWrite(LED_PIN, LOW);
-    if(root_time+10000 < millis()){
-      Serial.println("timeout");
-      is_root=true;
-      rootNodeID = nodeNumber;
-    }
   }
-
 
   delay(delayTime);
 
