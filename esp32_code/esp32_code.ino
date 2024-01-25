@@ -33,6 +33,9 @@ int rootRSSI = -100;  // Initial value set to a low signal strength
 const int glob_buf_size = (64* sizeof(char));
 char *glob_time_buf;
 long root_time;
+int max_root_time = 60000;
+long elect_time;
+int max_elect_time = 15000;
 
 //sensor code
 
@@ -52,7 +55,7 @@ Adafruit_BME280 bme; // I2C
 unsigned long delayTime;
 bool sntp_connected = false;
 
-int nodeNumber = 2; // unique identifier for each node
+int nodeNumber = 0; // unique identifier for each node
 int rootNodeID = nodeNumber; // start with the assumption that this node is the root
 bool is_root = true;
 
@@ -69,16 +72,6 @@ void checkRootMessage(String msg, int rssi) {
     is_root = false;
   }
 }
-
-
-
-
-
-void sendRootMessage() {
-  String msg = "nummer: " + String(nodeNumber) + " RSSI: " + String(WiFi.RSSI());
-  mesh.sendBroadcast(msg);
-}
-
 
 String getReadings () {
   JSONVar jsonReadings;
@@ -133,7 +126,7 @@ void printValues() {
 
 // mash code
 
-Task taskSendMessage( TASK_SECOND * 30 , TASK_FOREVER, &sendMessage );
+Task taskSendMessage( TASK_SECOND * 1 , TASK_FOREVER, &sendMessage );
 
 
 
@@ -244,7 +237,11 @@ void getLocalTime(char * time_buf, int time_buf_size) {
 }
 
 void sendData(String data, String endpoint) {
-  return;
+  if(elect_time+max_elect_time > millis()){
+    Serial.println("Electing so not sending data");
+    return;
+  }
+  return; //skip sending data for. THIS MUST BE REMOVED.
   HTTPClient http;
   http.begin(endpoint); 
   http.addHeader("Content-Type", "application/json");
@@ -269,6 +266,27 @@ void sendData(String data, String endpoint) {
 
   http.end();
   return;
+}
+
+void rootElection() {
+  String msg ="nummer: " + String(nodeNumber);
+  mesh.sendBroadcast(msg);
+
+  if(root_time+10000 < millis() && is_root==false){
+      Serial.println("timeout");
+      is_root=true;
+      rootNodeID = nodeNumber;
+      elect_time = millis();
+  }
+
+  if(elect_time+max_elect_time < millis()){
+    Serial.println("elect over");
+    taskSendMessage.enable();
+  }
+  else{
+    Serial.println("root electing");
+    taskSendMessage.disable();
+  }
 }
 
 
@@ -312,7 +330,7 @@ void setup() {
   mesh.onNodeTimeAdjusted(&nodeTimeAdjustedCallback);
 
   userScheduler.addTask( taskSendMessage );
-  taskSendMessage.enable();
+  elect_time = millis();
 }
 
 
@@ -320,7 +338,7 @@ void loop() {
   //printValues();
   //mash code
   mesh.update();
-  sendRootMessage();
+  rootElection();
   if (is_root){
     getLocalTime(glob_time_buf, glob_buf_size);
     String time_msg = "Time = " + String(glob_time_buf);
@@ -332,12 +350,6 @@ void loop() {
   }
   else{
     digitalWrite(LED_PIN, LOW);
-    if(root_time+10000 < millis()){
-      Serial.println("timeout");
-      is_root=true;
-      rootNodeID = nodeNumber;
-      rootRSSI = -100;  // Reset RSSI when becoming root
-    }
   }
 
   delay(delayTime);
