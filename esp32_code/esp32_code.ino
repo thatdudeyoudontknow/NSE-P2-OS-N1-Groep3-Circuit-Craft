@@ -107,7 +107,7 @@ void printValues() {
 
 // mash code
 
-Task taskSendMessage( TASK_SECOND * 1 , TASK_FOREVER, &sendMessage );
+Task taskSendMessage( TASK_SECOND * 30 , TASK_FOREVER, &sendMessage );
 
 
 // Needed for painless library
@@ -231,6 +231,7 @@ void sendData(String data, String endpoint) {
   }
 
   http.end();
+  return;
 }
 
 
