@@ -72,7 +72,7 @@ void checkRootMessage(String msg, int rssi)
   {
     rootRSSI = rssi;
     rootNodeID = receivedID;
-    is_root = false); // Set is_root to true only if this node is the new root
+    is_root = false; // Set is_root to true only if this node is the new root
     Serial.println("New root ID: " + String(rootNodeID));
     Serial.println("New root RSSI: " + String(rootRSSI));
   }
