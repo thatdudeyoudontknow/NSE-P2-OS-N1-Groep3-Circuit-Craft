@@ -77,6 +77,10 @@ void checkRootMessage(String msg, int rssi)
     Serial.println("New root ID: " + String(rootNodeID));
     Serial.println("New root RSSI: " + String(rootRSSI));
   }
+  if(rssi > WiFi.RSSI()){
+    is_root = true;
+    rootRSSI=WiFi.RSSI();
+  }
   if(receivedID == rootNodeID){
     root_time = millis();
   }
@@ -354,7 +358,6 @@ void loop()
     String time_msg = "Time = " + String(glob_time_buf);
     mesh.sendBroadcast(time_msg);
     digitalWrite(LED_PIN, HIGH);
-    rootRSSI=WiFi.RSSI();
     Serial.print("Root RSSI: ");
     Serial.println(rootRSSI);
   }
