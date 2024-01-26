@@ -286,15 +286,19 @@ void rootElection()
     rootNodeID = nodeNumber;
     elect_time = millis();
   }
+  else
+  {
+    is_root = false; // Set is_root to false if the timeout condition is not met
+  }
 
   if (elect_time + max_elect_time < millis())
   {
-    Serial.println("elect over");
+    //Serial.println("elect over");
     taskSendMessage.enable();
   }
   else
   {
-    Serial.println("root electing");
+    //Serial.println("root electing");
     taskSendMessage.disable();
   }
 }
