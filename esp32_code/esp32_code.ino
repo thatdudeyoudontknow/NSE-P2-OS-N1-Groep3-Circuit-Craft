@@ -70,7 +70,7 @@ void checkRootMessage(String msg, int rssi)
   // Check if the received node has a different ID and a stronger signal (higher RSSI)
   if (receivedID != nodeNumber && rssi > rootRSSI)
   {
-    Serial.println("niet root.")
+    Serial.println("niet root.");
     rootRSSI = rssi;
     rootNodeID = receivedID;
     is_root = false; // Set is_root to true only if this node is the new root
