@@ -279,17 +279,17 @@ void rootElection()
   String msg = "nummer: " + String(nodeNumber);
   mesh.sendBroadcast(msg);
 
-  if (root_time + 10000 < millis() && is_root == false)
-  {
-    Serial.println("timeout");
-    is_root = true;
-    rootNodeID = nodeNumber;
-    elect_time = millis();
-  }
-  else
-  {
-    is_root = false; // Set is_root to false if the timeout condition is not met
-  }
+  // if (root_time + max_root_time < millis() && is_root == false)
+  // {
+  //   Serial.println("timeout");
+  //   is_root = true;
+  //   rootNodeID = nodeNumber;
+  //   elect_time = millis();
+  // }
+  // else
+  // {
+  //   is_root = false; // Set is_root to false if the timeout condition is not met
+  // }
 
   if (elect_time + max_elect_time < millis())
   {
