@@ -33,7 +33,7 @@ int rootRSSI = -100; // Initial value set to a low signal strength
 const int glob_buf_size = (64 * sizeof(char));
 char *glob_time_buf;
 long root_time;
-int max_root_time = 60000;
+int max_root_time = 30000;
 long elect_time;
 int max_elect_time = 15000;
 
@@ -76,6 +76,9 @@ void checkRootMessage(String msg, int rssi)
     is_root = false; // Set is_root to true only if this node is the new root
     Serial.println("New root ID: " + String(rootNodeID));
     Serial.println("New root RSSI: " + String(rootRSSI));
+  }
+  if(receivedID == rootNodeID){
+    root_time = millis();
   }
 }
 
@@ -279,17 +282,13 @@ void rootElection()
   String msg = "nummer: " + String(nodeNumber);
   mesh.sendBroadcast(msg);
 
-  // if (root_time + max_root_time < millis() && is_root == false)
-  // {
-  //   Serial.println("timeout");
-  //   is_root = true;
-  //   rootNodeID = nodeNumber;
-  //   elect_time = millis();
-  // }
-  // else
-  // {
-  //   is_root = false; // Set is_root to false if the timeout condition is not met
-  // }
+  if (root_time + max_root_time < millis() && is_root == false)
+  {
+    Serial.println("timeout");
+    is_root = true;
+    rootNodeID = nodeNumber;
+    elect_time = millis();
+  }
 
   if (elect_time + max_elect_time < millis())
   {
