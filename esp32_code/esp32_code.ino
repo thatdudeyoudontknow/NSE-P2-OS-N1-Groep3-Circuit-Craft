@@ -77,9 +77,9 @@ void checkRootMessage(String msg, int rssi)
     Serial.println("New root ID: " + String(rootNodeID));
     Serial.println("New root RSSI: " + String(rootRSSI));
   }
-  if(rssi > WiFi.RSSI()){
+  if(rssi > mesh.getRSSI(mesh.getNodeId())){
     is_root = true;
-    rootRSSI=WiFi.RSSI();
+    rootRSSI=mesh.getRSSI(mesh.getNodeId());
   }
   if(receivedID == rootNodeID){
     root_time = millis();
@@ -144,7 +144,7 @@ Task taskSendMessage(TASK_SECOND *1, TASK_FOREVER, &sendMessage);
 
 void receivedCallbackWrapper(uint32_t from, String &msg)
 {
-  receivedCallback(from, msg, WiFi.RSSI());
+  receivedCallback(from, msg, mesh.getRSSI(mesh.getNodeId()));
 }
 
 void receivedCallback(uint32_t from, String &msg, int32_t rssi)
