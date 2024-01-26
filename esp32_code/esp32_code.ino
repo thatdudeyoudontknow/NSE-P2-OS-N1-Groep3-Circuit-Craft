@@ -54,7 +54,7 @@ Adafruit_BME280 bme; // I2C
 unsigned long delayTime;
 bool sntp_connected = false;
 
-int nodeNumber = 2;          // unique identifier for each node
+int nodeNumber = 4;          // unique identifier for each node
 int rootNodeID = nodeNumber; // start with the assumption that this node is the root
 bool is_root = true;
 
@@ -352,6 +352,7 @@ void loop()
 {
   mesh.update();
   rootElection();
+  Serial.println("mijn RSII:" + WiFi.RSSI());
   if (is_root)
   {
     getLocalTime(glob_time_buf, glob_buf_size);
