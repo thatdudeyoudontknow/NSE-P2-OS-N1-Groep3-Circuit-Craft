@@ -354,6 +354,7 @@ void loop()
     String time_msg = "Time = " + String(glob_time_buf);
     mesh.sendBroadcast(time_msg);
     digitalWrite(LED_PIN, HIGH);
+    rootRSSI=WiFi.RSSI();
     Serial.print("Root RSSI: ");
     Serial.println(rootRSSI);
   }
