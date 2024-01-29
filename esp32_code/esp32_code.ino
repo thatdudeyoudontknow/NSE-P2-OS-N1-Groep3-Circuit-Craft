@@ -40,7 +40,7 @@ Adafruit_BME280 bme;
 unsigned long delayTime;
 bool sntp_connected = false;
 
-int nodeNumber = 8;          // unique identifier for each node
+int nodeNumber = 4;          // unique identifier for each node
 int rootNodeID = nodeNumber; // start with the assumption that this node is the root
 bool is_root = true;
 
@@ -352,6 +352,5 @@ void loop()
   {
     digitalWrite(LED_PIN, LOW);
   }
-
   delay(delayTime);
 }
