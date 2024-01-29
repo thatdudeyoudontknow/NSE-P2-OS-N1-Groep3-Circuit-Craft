@@ -1,11 +1,6 @@
-/*********
-  Complete project details at http://randomnerdtutorials.com  
-*********/
-
 #include <Wire.h>
 #include <Adafruit_Sensor.h>
 #include <Adafruit_BME280.h>
-//mash code
 #include "painlessMesh.h"
 #include <Arduino_JSON.h>
 #include <HTTPClient.h>
@@ -22,6 +17,7 @@
 
 #define node_red_server "http://192.168.137.1:5000/test"
 #define LED_PIN 4
+
 Scheduler userScheduler; // to control your personal task
 painlessMesh mesh;
 
@@ -37,19 +33,9 @@ int max_root_time = 30000;
 long elect_time;
 int max_elect_time = 15000;
 
-//sensor code
-
-/*#include <SPI.h>
-#define BME_SCK 18
-#define BME_MISO 19
-#define BME_MOSI 23
-#define BME_CS 5*/
-
 #define SEALEVELPRESSURE_HPA (1013.25)
 
-Adafruit_BME280 bme; // I2C
-//Adafruit_BME280 bme(BME_CS); // hardware SPI
-//Adafruit_BME280 bme(BME_CS, BME_MOSI, BME_MISO, BME_SCK); // software SPI
+Adafruit_BME280 bme; 
 
 unsigned long delayTime;
 bool sntp_connected = false;
@@ -85,7 +71,6 @@ void checkRootMessage(String msg, int rssi)
     root_time = millis();
   }
 }
-
 
 String getReadings()
 {
