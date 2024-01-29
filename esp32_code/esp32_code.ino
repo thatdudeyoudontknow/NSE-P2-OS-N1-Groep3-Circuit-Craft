@@ -47,12 +47,13 @@ bool is_root = true;
 String readings;
 String receivedTime;
 
-void checkRootMessage(String msg, int rssi)
+void checkRootMessage(String msg)
 {
   int receivedID = msg.toInt();
+
   Serial.println("Received ID: " + String(receivedID));
-  Serial.println("Received RSSI: " + String(rssi));
-  
+
+  rssi= msg.substring(2):
   // Check if the received node has a different ID and a stronger signal (higher RSSI)
   if (receivedID != nodeNumber && rssi > rootRSSI)
   {
@@ -61,7 +62,9 @@ void checkRootMessage(String msg, int rssi)
     rootNodeID = receivedID;
     is_root = false; // Set is_root to true only if this node is the new root
     Serial.println("New root ID: " + String(rootNodeID));
+    
     Serial.println("New root RSSI: " + String(rootRSSI));
+    
   }
   if(rssi > WiFi.RSSI()){
     is_root = true;
@@ -127,14 +130,14 @@ void printValues()
 
 Task taskSendMessage(TASK_SECOND *1, TASK_FOREVER, &sendMessage);
 
-void receivedCallbackWrapper(uint32_t from, String &msg)
+void receivedCallbackWrapper(String &msg)
 {
-  receivedCallback(from, msg, WiFi.RSSI());
+  receivedCallback(msg);
 }
 
-void receivedCallback(uint32_t from, String &msg, int32_t rssi)
+void receivedCallback(String &msg)
 {
-  Serial.printf("startHere: Received from %u msg=%s with RSSI=%d\n", from, msg.c_str(), rssi);
+  Serial.printf("startHere:msg=%s", msg.c_str());
   if (msg.startsWith("Time =") && !is_root)
   {
     // Extract the time information from the message (assuming the format is "Time = <actual_time>")
@@ -268,7 +271,7 @@ void sendData(String data, String endpoint)
 
 void rootElection()
 {
-  String msg = "nummer: " + String(nodeNumber);
+  String msg = "nummer: " + String(nodeNumber) +" "+ WiFi.RSSI();
   mesh.sendBroadcast(msg);
 
   if (root_time + max_root_time < millis() && is_root == false)
