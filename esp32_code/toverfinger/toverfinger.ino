@@ -1,122 +1,78 @@
-#include <Arduino.h>
+#include <Adafruit_Sensor.h>
+#include <Adafruit_BME280.h>
 #include "painlessMesh.h"
+#include <Arduino_JSON.h>
 
-#define MESH_PREFIX     "whateverYouLike"
-#define MESH_PASSWORD   "somethingSneaky"
+#define MESH_PREFIX     "Mendel-University-mesh"
+#define MESH_PASSWORD   "2*eenbanaanineenBOOT"
 #define MESH_PORT       5555
+
+Adafruit_BME280 bme;
+int nodeNumber = 2;
+String readings;
 
 Scheduler userScheduler;
 painlessMesh mesh;
 
-// uncomment only one of the following
-#define WHITE
-//#define RED
-//#define GREEN
 
-#ifdef WHITE
-#define ROLE    "white"
-#define VERSION "WHITE v1.0.0"
-#define MESSAGE "White "
-#endif
 
-#ifdef RED
-#define ROLE    "red"
-#define VERSION "RED - 1.0.0"
-#define MESSAGE "Red "
-#endif
+String getReadings() {
+  JSONVar jsonReadings;
+  jsonReadings["node"] = nodeNumber;
+  jsonReadings["temp"] = bme.readTemperature();
+  jsonReadings["hum"] = bme.readHumidity();
+  jsonReadings["pres"] = bme.readPressure() / 100.0F;
+  readings = JSON.stringify(jsonReadings);
+  return readings;
+}
 
-#ifdef GREEN
-#define ROLE    "green"
-#define VERSION "GREEN - 1.0.0"
-#define MESSAGE "Green "
-#endif
-
-bool calc_delay = false;
-SimpleList<uint32_t> nodes;
-uint32_t nsent=0;
-char buff[512];
-
-void sendMessage(String msg);
-
-void receivedCallback(uint32_t from, String &msg) {
-  Serial.printf("Rx from %u <- %s\n", from, msg.c_str());
-
-  if (strcmp(msg.c_str(),"GETRT") == 0) {
-    mesh.sendBroadcast(mesh.subConnectionJson(true).c_str());
-  } else {
-    Serial.printf("Rx:%s\n", msg.c_str());
+void sendMessage() {
+  String msg = getReadings();
+  
+  // Replace the following line with the IP address of your Raspberry Pi
+  IPAddress piIPAddress(10, 42, 0, 1);
+  
+  mesh.sendSingle(piIPAddress, msg);
+}
+Task taskSendMessage(TASK_SECOND * 5, TASK_FOREVER, &sendMessage);
+void initBME() {
+  if (!bme.begin(0x76)) {
+    Serial.println("Could not find a valid BME280 sensor, check wiring!");
+    while (1);
   }
 }
 
+void receivedCallback(uint32_t from, String &msg) {
+  Serial.printf("Received from %u msg=%s\n", from, msg.c_str());
+  // Handle the received message on the ESP8266 as needed
+}
+
 void newConnectionCallback(uint32_t nodeId) {
-  Serial.printf("--> Start: New Connection, nodeId = %u\n", nodeId);
-  Serial.printf("--> Start: New Connection, %s\n", mesh.subConnectionJson(true).c_str());
+  Serial.printf("New Connection, nodeId = %u\n", nodeId);
 }
 
 void changedConnectionCallback() {
   Serial.printf("Changed connections\n");
-
-  nodes = mesh.getNodeList();
-  Serial.printf("Num nodes: %d\n", nodes.size());
-  Serial.printf("Connection list:");
-  SimpleList<uint32_t>::iterator node = nodes.begin();
-  while (node != nodes.end()) {
-    Serial.printf(" %u", *node);
-    node++;
-  }
-  Serial.println();
-  calc_delay = true;
-
-  Serial.printf("Nodes:%d\n", nodes.size());
 }
 
 void nodeTimeAdjustedCallback(int32_t offset) {
-  Serial.printf("Adjusted time %u Offset = %d\n", mesh.getNodeTime(), offset);
-}
-
-void onNodeDelayReceived(uint32_t nodeId, int32_t delay) {
-  Serial.printf("Delay from node:%u delay = %d\n", nodeId, delay);
-}
-
-void sendMessage(String msg) {
-  if (strcmp(msg.c_str(), "") == 0) {
-    nsent++;
-    msg = MESSAGE;
-    msg += nsent;
-  }
-  mesh.sendBroadcast(msg);
-  Serial.printf("Tx-> %s\n", msg.c_str());
-
-  if (calc_delay) {
-    SimpleList<uint32_t>::iterator node = nodes.begin();
-    while (node != nodes.end()) {
-      mesh.startDelayMeas(*node);
-      node++;
-    }
-    calc_delay = false;
-  }
-}
-
-void simulateButtonPress(int buttonPin) {
-  sendMessage("GETRT");  // Simulate button press by sending a message
+  Serial.printf("Adjusted time %u. Offset = %d\n", mesh.getNodeTime(), offset);
 }
 
 void setup() {
   Serial.begin(115200);
 
+  initBME();
+
+  mesh.setDebugMsgTypes(ERROR | STARTUP);
   mesh.init(MESH_PREFIX, MESH_PASSWORD, &userScheduler, MESH_PORT);
   mesh.onReceive(&receivedCallback);
   mesh.onNewConnection(&newConnectionCallback);
   mesh.onChangedConnections(&changedConnectionCallback);
   mesh.onNodeTimeAdjusted(&nodeTimeAdjustedCallback);
 
-  mesh.initOTAReceive(ROLE);
-
-  pinMode(2, INPUT_PULLUP); // Use GPIO 2 as the first button (connect to ground to simulate button press)
-  pinMode(4, INPUT_PULLUP); // Use GPIO 4 as the second button (connect to ground to simulate button press)
-
-  attachInterrupt(digitalPinToInterrupt(2), []() { simulateButtonPress(2); }, FALLING);
-  attachInterrupt(digitalPinToInterrupt(4), []() { simulateButtonPress(4); }, FALLING);
+  userScheduler.addTask(taskSendMessage);
+  taskSendMessage.enable();
 }
 
 void loop() {
