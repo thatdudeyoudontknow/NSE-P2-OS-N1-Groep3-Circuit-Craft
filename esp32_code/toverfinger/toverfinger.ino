@@ -9,7 +9,7 @@
 #define   STATION_SSID     "CircuitCraft-Wifi"
 #define   STATION_PASSWORD ""
 #define   STATION_PORT     5555
-uint8_t   station_ip[4] =  {10, 80, 93, 5};
+uint8_t   station_ip[4] =  {10, 160, 157, 2};
 Adafruit_BME280 bme;
 int nodeNumber = 2;
 String readings;
@@ -31,7 +31,7 @@ void sendMessage() {
   String msg = getReadings();
   
   // Replace the following line with the IP address of your Raspberry Pi
-  IPAddress piIPAddress(10, 80, 93, 5);
+  IPAddress piIPAddress(10, 160, 157, 2);
   
   mesh.sendSingle(piIPAddress, msg);
 }
