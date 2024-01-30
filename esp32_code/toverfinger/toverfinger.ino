@@ -6,7 +6,10 @@
 #define MESH_PREFIX     "CircuitCraft-Wifi"
 #define MESH_PASSWORD   ""
 #define MESH_PORT       5555
-
+#define   STATION_SSID     "CircuitCraft-Wifi"
+#define   STATION_PASSWORD ""
+#define   STATION_PORT     5555
+uint8_t   station_ip[4] =  {10, 80, 93, 5};
 Adafruit_BME280 bme;
 int nodeNumber = 2;
 String readings;
@@ -35,7 +38,7 @@ void sendMessage() {
 
 
 
-Task taskSendMessage(TASK_SECOND * 5, TASK_FOREVER, &sendMessage);
+Task taskSendMessage(TASK_SECOND * 1, TASK_FOREVER, &sendMessage);
 
 void initBME() {
   if (!bme.begin(0x76)) {
@@ -47,6 +50,7 @@ void initBME() {
 void receivedCallback(uint32_t from, String &msg) {
   Serial.printf("Received from %u msg=%s\n", from, msg.c_str());
   // Handle the received message on the ESP8266 as needed
+  Serial.printf("bridge: Received from %u msg=%s\n", from, msg.c_str());
 }
 
 void newConnectionCallback(uint32_t nodeId) {
@@ -65,15 +69,19 @@ void setup() {
   Serial.begin(115200);
 
   initBME();
-  uint8_t externalIP[] = {10,42,0,1};
+  
   mesh.setDebugMsgTypes(ERROR | STARTUP | CONNECTION | REMOTE | SYNC | GENERAL | COMMUNICATION | MSG_TYPES | DEBUG);
 
-  mesh.init(MESH_PREFIX, MESH_PASSWORD, &userScheduler, MESH_PORT);
+  mesh.init(MESH_PREFIX, MESH_PASSWORD, &userScheduler, MESH_PORT, WIFI_AP_STA,0);
+  mesh.initOTAReceive("bridge");
+  mesh.stationManual(STATION_SSID, STATION_PASSWORD, STATION_PORT, station_ip);
+  mesh.setRoot(true);
+  mesh.setContainsRoot(true);
   mesh.onReceive(&receivedCallback);
   mesh.onNewConnection(&newConnectionCallback);
   mesh.onChangedConnections(&changedConnectionCallback);
   mesh.onNodeTimeAdjusted(&nodeTimeAdjustedCallback);
-  mesh.stationManual(MESH_PREFIX, MESH_PASSWORD, MESH_PORT, externalIP);
+  
   userScheduler.addTask(taskSendMessage);
   taskSendMessage.enable();
 }
