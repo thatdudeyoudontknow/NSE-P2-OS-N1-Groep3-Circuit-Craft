@@ -1,0 +1,6 @@
+bestaat queue check?
+
+
+queue check geeft true of false terug
+
+hij cycled door de hele cue op basis van de avilible plekken en het maximum plekken. hij stopt pas het cycelen als hij alles heeft gehad ook al komt hij het tegen in de queue
