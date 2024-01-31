@@ -31,7 +31,7 @@ void sendMessage() {
   String msg = getReadings();
   
   // Replace the following line with the IP address of your Raspberry Pi
-  IPAddress piIPAddress(10, 160, 157, 2);
+  IPAddress piIPAddress(10, 80, 93, 5);
   
   mesh.sendSingle(piIPAddress, msg);
 }
