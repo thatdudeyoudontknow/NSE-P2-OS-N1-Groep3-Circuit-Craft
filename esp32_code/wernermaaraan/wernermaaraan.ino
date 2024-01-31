@@ -38,7 +38,7 @@ char *glob_time_buf;
 long root_time;
 int max_root_time = 60000;
 long elect_time;
-int max_elect_time = 15000;
+int max_elect_time = 15;
 
 //sensor code
 
@@ -277,7 +277,7 @@ void rootElection() {
   }
 
   if(elect_time+max_elect_time < millis()){
-    Serial.println("elect over");
+    //Serial.println("elect over");
     taskSendMessage.enable();
   }
   else{
@@ -297,7 +297,7 @@ void queue_insert(String data){
         free(oldest_data);
         
     } 
-
+  //convert the string to char
   const char* insert_data = data.c_str();
 
   // Allocate memory for new_data and copy temp into it
@@ -306,7 +306,20 @@ void queue_insert(String data){
   Serial.println("stop data in queue");
   Serial.println(uxQueueSpacesAvailable(queue));
   xQueueSendToBack(queue, &new_data, 0);
+  Serial.println("in queue gestopt");
 }
+
+char* queue_get(){
+  if (uxQueueSpacesAvailable(queue) == MAX_QUEUE_SIZE){
+    return "queue is empty";
+  }
+  char *data;
+  xQueueReceive(queue, &data, 0);
+  
+  return data; 
+}
+
+
 
 void setup() {
   Serial.begin(115200);
@@ -332,7 +345,7 @@ void setup() {
   }
 
   Serial.println("-- Default Test --");
-  delayTime = 1000;
+  delayTime = 5000;
 
   Serial.println();
 
@@ -355,6 +368,8 @@ void setup() {
 
 
 void loop() { 
+  String queue_data = "Data in queue is: " + String(queue_get());
+  Serial.println(queue_data);
   //printValues();
   //mash code
   mesh.update();
@@ -369,7 +384,5 @@ void loop() {
   else{
     digitalWrite(LED_PIN, LOW);
   }
-
   delay(delayTime);
-
 }
