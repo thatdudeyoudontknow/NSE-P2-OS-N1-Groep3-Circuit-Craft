@@ -6,12 +6,9 @@
 #define MESH_PREFIX     "CircuitCraft-Wifi"
 #define MESH_PASSWORD   ""
 #define MESH_PORT       5555
-#define   STATION_SSID     "CircuitCraft-Wifi"
-#define   STATION_PASSWORD ""
-#define   STATION_PORT     5555
-uint8_t   station_ip[4] =  {10, 160, 157, 2};
+
 Adafruit_BME280 bme;
-int nodeNumber = 2;
+int nodeNumber = 666;
 String readings;
 
 Scheduler userScheduler;
@@ -23,6 +20,7 @@ String getReadings() {
   jsonReadings["temp"] = bme.readTemperature();
   jsonReadings["hum"] = bme.readHumidity();
   jsonReadings["pres"] = bme.readPressure() / 100.0F;
+  jsonReadings["wifi_strength"] = WiFi.RSSI();
   readings = JSON.stringify(jsonReadings);
   return readings;
 }
@@ -30,10 +28,8 @@ String getReadings() {
 void sendMessage() {
   String msg = getReadings();
   
-  // Replace the following line with the IP address of your Raspberry Pi
-  IPAddress piIPAddress(10, 80, 93, 5);
-  
-  mesh.sendSingle(piIPAddress, msg);
+
+  mesh.sendBroadcast(msg);
 }
 
 
@@ -74,9 +70,8 @@ void setup() {
 
   mesh.init(MESH_PREFIX, MESH_PASSWORD, &userScheduler, MESH_PORT, WIFI_AP_STA,0);
   mesh.initOTAReceive("bridge");
-  mesh.stationManual(STATION_SSID, STATION_PASSWORD, STATION_PORT, station_ip);
-  mesh.setRoot(true);
-  mesh.setContainsRoot(true);
+  // mesh.setRoot(true);
+  // mesh.setContainsRoot(true);
   mesh.onReceive(&receivedCallback);
   mesh.onNewConnection(&newConnectionCallback);
   mesh.onChangedConnections(&changedConnectionCallback);
