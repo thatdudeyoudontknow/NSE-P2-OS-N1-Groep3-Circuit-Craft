@@ -2,13 +2,14 @@
 #include <Adafruit_BME280.h>
 #include "painlessMesh.h"
 #include <Arduino_JSON.h>
+#include "show_number.h"
 
 #define MESH_PREFIX     "CircuitCraft-Wifi"
 #define MESH_PASSWORD   ""
 #define MESH_PORT       5555
 
 Adafruit_BME280 bme;
-int nodeNumber = 123;
+int nodeNumber = 1;
 String readings;
 
 Scheduler userScheduler;
@@ -17,10 +18,10 @@ painlessMesh mesh;
 String getReadings() {
   JSONVar jsonReadings;
   jsonReadings["node"] = nodeNumber;
-  jsonReadings["temp"] = bme.readTemperature();
+  jsonReadings["temp"] = bme.readTemperature() + 273.15 ;
   jsonReadings["hum"] = bme.readHumidity();
   jsonReadings["pres"] = bme.readPressure() / 100.0F;
-  jsonReadings["wifi_strength"] = WiFi.RSSI();
+  //jsonReadings["wifi_strength"] = WiFi.RSSI();
   readings = JSON.stringify(jsonReadings);
   return readings;
 }
@@ -79,6 +80,8 @@ void setup() {
   
   userScheduler.addTask(taskSendMessage);
   taskSendMessage.enable();
+
+  show_number(nodeNumber);
 }
 
 void loop() {
