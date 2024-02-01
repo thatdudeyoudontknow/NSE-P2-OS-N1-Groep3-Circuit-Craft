@@ -1,7 +1,8 @@
 /*********
   Complete project details at http://randomnerdtutorials.com  
 *********/
-
+#include "queue.h"
+#include "show_number.h"
 #include <Wire.h>
 #include <Adafruit_Sensor.h>
 #include <Adafruit_BME280.h>
@@ -13,6 +14,8 @@
 #include "esp_sntp.h"
 #include <WiFi.h>
 
+
+
 #define   MESH_PREFIX     "Circuit-Craft-Mash"
 #define   MESH_PASSWORD   "Hond1234"
 #define   MESH_PORT       5555
@@ -21,12 +24,6 @@
 #define password "Hond1234"
 
 #define node_red_server "http://192.168.137.1:5000/test"
-#define LED_PIN 4
-
-#define MAX_QUEUE_SIZE 15
-SemaphoreHandle_t queue_Semaphore;
-
-QueueHandle_t queue; //declear the audit_queue handle
 Scheduler userScheduler; // to control your personal task
 painlessMesh  mesh;
 
@@ -59,7 +56,7 @@ Adafruit_BME280 bme; // I2C
 unsigned long delayTime;
 bool sntp_connected = false;
 
-int nodeNumber = 0; // unique identifier for each node
+int nodeNumber = 3; // unique identifier for each node
 int rootNodeID = nodeNumber; // start with the assumption that this node is the root
 bool is_root = true;
 
@@ -287,53 +284,10 @@ void rootElection() {
   }
 }
 
-void queue_insert(String data){
-  if(xSemaphoreTake(queue_Semaphore, (TickType_t) 10) == pdTRUE){
-    if (uxQueueSpacesAvailable(queue) == 0) {
-        char *oldest_data;
-        // Verwijder de oudste tijdstempel en zegt welke het is
-        xQueueReceive(queue, &oldest_data, 0);
-        Serial.print("Queue full!. The deleted data is");
-        Serial.println(oldest_data);
-        free(oldest_data);
-        
-    } 
-  //convert the string to char
-    const char* insert_data = data.c_str();
-
-    // Allocate memory for new_data and copy temp into it
-    char *new_data = (char*) malloc((strlen(insert_data ) + 1) * sizeof(char));
-    strcpy(new_data, insert_data );
-    Serial.println("stop data in queue");
-    Serial.println(uxQueueSpacesAvailable(queue));
-    xQueueSendToBack(queue, &new_data, 0);
-    Serial.println("in queue gestopt");
-    xSemaphoreGive(queue_Semaphore);
-  }
-}
-
-char* queue_get(){
-  char *data = "queue is niet vrij"; //als de queue vrij is komt in deze variabele de data in de queue
-
-  if(xSemaphoreTake(queue_Semaphore, (TickType_t) 10) == pdTRUE){
-    if (uxQueueSpacesAvailable(queue) == MAX_QUEUE_SIZE){
-
-      xSemaphoreGive(queue_Semaphore);
-      return "queue is empty";
-    }
-    
-    xQueueReceive(queue, &data, 0);
-
-    xSemaphoreGive(queue_Semaphore);
-  }
-  return data; 
-}
-
-
 
 void setup() {
   Serial.begin(115200);
-  pinMode(LED_PIN, OUTPUT);
+
   glob_time_buf = (char*)malloc(glob_buf_size);
   assert( glob_time_buf != NULL);
   WiFi_connect();
@@ -358,15 +312,7 @@ void setup() {
   delayTime = 5000;
 
   Serial.println();
-
-  queue = xQueueCreate(MAX_QUEUE_SIZE, sizeof(char *));
-  assert(queue);
-  queue_Semaphore = xSemaphoreCreateBinary();
-  // handle = binary semaphore.........
-  if(queue_Semaphore != NULL){
-  // free binarys semaphore........
-    xSemaphoreGive(queue_Semaphore);
-  }
+  queue_setup();
   
   //mash code
   //mesh.setDebugMsgTypes( ERROR | MESH_STATUS | CONNECTION | SYNC | COMMUNICATION | GENERAL | MSG_TYPES | REMOTE ); // all types on
@@ -380,6 +326,8 @@ void setup() {
 
   userScheduler.addTask( taskSendMessage );
   elect_time = millis();
+
+  show_number(nodeNumber);
 }
 
 
@@ -395,10 +343,10 @@ void loop() {
     String time_msg = "Time = " + String(glob_time_buf);
     mesh.sendBroadcast(time_msg);
     //Serial.println("ik ben root");
-    digitalWrite(LED_PIN, HIGH);
+
   }
   else{
-    digitalWrite(LED_PIN, LOW);
+
   }
   delay(delayTime);
 }

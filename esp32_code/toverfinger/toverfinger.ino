@@ -2,16 +2,14 @@
 #include <Adafruit_BME280.h>
 #include "painlessMesh.h"
 #include <Arduino_JSON.h>
+#include "show_number.h"
 
 #define MESH_PREFIX     "CircuitCraft-Wifi"
 #define MESH_PASSWORD   ""
 #define MESH_PORT       5555
-#define   STATION_SSID     "CircuitCraft-Wifi"
-#define   STATION_PASSWORD ""
-#define   STATION_PORT     5555
-uint8_t   station_ip[4] =  {10, 160, 157, 2};
+
 Adafruit_BME280 bme;
-int nodeNumber = 2;
+int nodeNumber = 1;
 String readings;
 
 Scheduler userScheduler;
@@ -20,9 +18,10 @@ painlessMesh mesh;
 String getReadings() {
   JSONVar jsonReadings;
   jsonReadings["node"] = nodeNumber;
-  jsonReadings["temp"] = bme.readTemperature();
+  jsonReadings["temp"] = bme.readTemperature() + 273.15 ;
   jsonReadings["hum"] = bme.readHumidity();
   jsonReadings["pres"] = bme.readPressure() / 100.0F;
+  //jsonReadings["wifi_strength"] = WiFi.RSSI();
   readings = JSON.stringify(jsonReadings);
   return readings;
 }
@@ -30,15 +29,13 @@ String getReadings() {
 void sendMessage() {
   String msg = getReadings();
   
-  // Replace the following line with the IP address of your Raspberry Pi
-  IPAddress piIPAddress(10, 80, 93, 5);
-  
-  mesh.sendSingle(piIPAddress, msg);
+
+  mesh.sendBroadcast(msg);
 }
 
 
 
-Task taskSendMessage(TASK_SECOND * 1, TASK_FOREVER, &sendMessage);
+Task taskSendMessage(TASK_SECOND * 5, TASK_FOREVER, &sendMessage);
 
 void initBME() {
   if (!bme.begin(0x76)) {
@@ -50,7 +47,7 @@ void initBME() {
 void receivedCallback(uint32_t from, String &msg) {
   Serial.printf("Received from %u msg=%s\n", from, msg.c_str());
   // Handle the received message on the ESP8266 as needed
-  Serial.printf("bridge: Received from %u msg=%s\n", from, msg.c_str());
+  //Serial.printf("bridge: Received from %u msg=%s\n", from, msg.c_str());
 }
 
 void newConnectionCallback(uint32_t nodeId) {
@@ -70,13 +67,12 @@ void setup() {
 
   initBME();
   
-  mesh.setDebugMsgTypes(ERROR | STARTUP | CONNECTION | REMOTE | SYNC | GENERAL | COMMUNICATION | MSG_TYPES | DEBUG);
+  mesh.setDebugMsgTypes(ERROR | STARTUP);
 
   mesh.init(MESH_PREFIX, MESH_PASSWORD, &userScheduler, MESH_PORT, WIFI_AP_STA,0);
   mesh.initOTAReceive("bridge");
-  mesh.stationManual(STATION_SSID, STATION_PASSWORD, STATION_PORT, station_ip);
-  mesh.setRoot(true);
-  mesh.setContainsRoot(true);
+  // mesh.setRoot(true);
+  // mesh.setContainsRoot(true);
   mesh.onReceive(&receivedCallback);
   mesh.onNewConnection(&newConnectionCallback);
   mesh.onChangedConnections(&changedConnectionCallback);
@@ -84,6 +80,8 @@ void setup() {
   
   userScheduler.addTask(taskSendMessage);
   taskSendMessage.enable();
+
+  show_number(nodeNumber);
 }
 
 void loop() {
