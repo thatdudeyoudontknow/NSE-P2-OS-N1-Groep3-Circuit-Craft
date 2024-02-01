@@ -8,7 +8,7 @@
 #define MESH_PORT       5555
 
 Adafruit_BME280 bme;
-int nodeNumber = 666;
+int nodeNumber = 123;
 String readings;
 
 Scheduler userScheduler;
@@ -34,7 +34,7 @@ void sendMessage() {
 
 
 
-Task taskSendMessage(TASK_SECOND * 1, TASK_FOREVER, &sendMessage);
+Task taskSendMessage(TASK_SECOND * 5, TASK_FOREVER, &sendMessage);
 
 void initBME() {
   if (!bme.begin(0x76)) {
@@ -46,7 +46,7 @@ void initBME() {
 void receivedCallback(uint32_t from, String &msg) {
   Serial.printf("Received from %u msg=%s\n", from, msg.c_str());
   // Handle the received message on the ESP8266 as needed
-  Serial.printf("bridge: Received from %u msg=%s\n", from, msg.c_str());
+  //Serial.printf("bridge: Received from %u msg=%s\n", from, msg.c_str());
 }
 
 void newConnectionCallback(uint32_t nodeId) {
@@ -66,7 +66,7 @@ void setup() {
 
   initBME();
   
-  mesh.setDebugMsgTypes(ERROR | STARTUP | CONNECTION | REMOTE | SYNC | GENERAL | COMMUNICATION | MSG_TYPES | DEBUG);
+  mesh.setDebugMsgTypes(ERROR | STARTUP);
 
   mesh.init(MESH_PREFIX, MESH_PASSWORD, &userScheduler, MESH_PORT, WIFI_AP_STA,0);
   mesh.initOTAReceive("bridge");
