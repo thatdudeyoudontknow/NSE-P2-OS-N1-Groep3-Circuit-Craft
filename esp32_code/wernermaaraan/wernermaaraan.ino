@@ -315,6 +315,7 @@ char* queue_get(){
   }
   char *data;
   xQueueReceive(queue, &data, 0);
+  free(data);
   
   return data; 
 }
