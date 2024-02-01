@@ -2,6 +2,7 @@
   Complete project details at http://randomnerdtutorials.com  
 *********/
 #include "queue.h"
+#include "show_number.h"
 #include <Wire.h>
 #include <Adafruit_Sensor.h>
 #include <Adafruit_BME280.h>
@@ -14,6 +15,7 @@
 #include <WiFi.h>
 
 
+
 #define   MESH_PREFIX     "Circuit-Craft-Mash"
 #define   MESH_PASSWORD   "Hond1234"
 #define   MESH_PORT       5555
@@ -22,7 +24,6 @@
 #define password "Hond1234"
 
 #define node_red_server "http://192.168.137.1:5000/test"
-#define LED_PIN 4
 Scheduler userScheduler; // to control your personal task
 painlessMesh  mesh;
 
@@ -55,7 +56,7 @@ Adafruit_BME280 bme; // I2C
 unsigned long delayTime;
 bool sntp_connected = false;
 
-int nodeNumber = 0; // unique identifier for each node
+int nodeNumber = 3; // unique identifier for each node
 int rootNodeID = nodeNumber; // start with the assumption that this node is the root
 bool is_root = true;
 
@@ -286,7 +287,7 @@ void rootElection() {
 
 void setup() {
   Serial.begin(115200);
-  pinMode(LED_PIN, OUTPUT);
+
   glob_time_buf = (char*)malloc(glob_buf_size);
   assert( glob_time_buf != NULL);
   WiFi_connect();
@@ -326,10 +327,7 @@ void setup() {
   userScheduler.addTask( taskSendMessage );
   elect_time = millis();
 
-  queue_insert("een");
-  queue_insert("twee");
-  queue_insert("drie");
-  queue_insert("twee");
+  show_number(nodeNumber);
 }
 
 
@@ -345,10 +343,10 @@ void loop() {
     String time_msg = "Time = " + String(glob_time_buf);
     mesh.sendBroadcast(time_msg);
     //Serial.println("ik ben root");
-    digitalWrite(LED_PIN, HIGH);
+
   }
   else{
-    digitalWrite(LED_PIN, LOW);
+
   }
   delay(delayTime);
 }
