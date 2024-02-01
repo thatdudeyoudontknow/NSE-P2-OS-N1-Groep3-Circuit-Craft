@@ -97,7 +97,7 @@ String getReadings () {
 
 void sendMessage () {
   String msg = getReadings();
-  queue_insert(msg);
+  //queue_insert(msg);
   mesh.sendBroadcast(msg);
 }
 
@@ -289,6 +289,13 @@ void rootElection() {
 
 void queue_insert(String data){
   if(xSemaphoreTake(queue_Semaphore, (TickType_t) 10) == pdTRUE){
+
+    if(queue_check(data)){
+      Serial.println("Zit al in de queue");
+      xSemaphoreGive(queue_Semaphore);
+      return;
+    }
+
     if (uxQueueSpacesAvailable(queue) == 0) {
         char *oldest_data;
         // Verwijder de oudste tijdstempel en zegt welke het is
@@ -321,7 +328,7 @@ char* queue_get(){
       xSemaphoreGive(queue_Semaphore);
       return "queue is empty";
     }
-    
+
     xQueueReceive(queue, &data, 0);
 
     xSemaphoreGive(queue_Semaphore);
@@ -329,6 +336,38 @@ char* queue_get(){
   return data; 
 }
 
+
+bool queue_check(String data){
+  if(uxQueueSpacesAvailable(queue) == MAX_QUEUE_SIZE){
+  Serial.println("queue is empty");
+  return false;
+  }
+  bool results = false;
+  const char *check_data = data.c_str(); //turns the String to char
+  int lenght = MAX_QUEUE_SIZE - int(uxQueueSpacesAvailable(queue));
+  int count = 0;
+
+  Serial.print("The lenght of the queue:");
+  Serial.println(lenght);
+
+  while(count != lenght){
+    char *queue_data;
+    xQueueReceive(queue, &queue_data, 0);
+    Serial.println("got an item to check from queue");
+    Serial.print("check_data:");
+    Serial.println(check_data);
+    Serial.print("queue_data:");
+    Serial.println(queue_data);
+    if(String(queue_data) == String(check_data)){
+      Serial.print(check_data);
+      Serial.println("Zit al in queue");
+      results = true;
+    }
+      xQueueSendToBack(queue, &queue_data, 0);
+      count ++;
+  }
+  return results;
+}
 
 
 void setup() {
@@ -380,6 +419,11 @@ void setup() {
 
   userScheduler.addTask( taskSendMessage );
   elect_time = millis();
+
+  queue_insert("een");
+  queue_insert("twee");
+  queue_insert("drie");
+  queue_insert("twee");
 }
 
 
