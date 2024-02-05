@@ -119,10 +119,10 @@ def get_ip_range():
 #         print(f"Best WiFi strength found at {best_ip}")
 #         # Add the necessary command to re-establish a connection
 
-def scan_and_connect():
+def scan_and_connect(ip_range):
     while True:
         process = subprocess.Popen(
-            ["painlessmesh", "list", "--json"],
+            ["painlessmesh", "list", "--json", ip_range],
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             text=True
@@ -152,8 +152,7 @@ def scan_and_connect():
                 message_json = json.loads(mesh_output)
                 wifi_strength = message_json.get("wifi_strength", None)
                 print(f"WiFi Strength: {wifi_strength}")
-                some_threshold = -80
-
+                some_threshold = -60
                 # Add a condition to break the loop if necessary
                 if wifi_strength is None or wifi_strength < some_threshold:
                     break
@@ -163,6 +162,7 @@ def scan_and_connect():
 
         # Add a delay to avoid overloading the system
         time.sleep(5)
+
 
 if __name__ == "__main__":
     ip_range = get_ip_range()
