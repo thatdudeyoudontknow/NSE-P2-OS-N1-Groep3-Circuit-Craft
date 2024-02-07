@@ -11,55 +11,60 @@ import sqlite3
 from sqlite3 import Error
 from datetime import datetime
 
+
+# Global variables
+node = None
+time = None
+temp = None
+hum = None
+pres = None
+
+# Rest of your code...
+
+
 ssid = "CircuitCraft-WiFi"
 password =""
-def capture_output(process, stream, lines):
-    for line in stream:
-        lines.append(line.strip())
 
-# Database functions
-def create_connection():
-    conn = None;
+def create_connection(db_file):
+    """ Create a database connection to a SQLite database """
+    conn = None
     try:
-        conn = sqlite3.connect('network_scan.db') # Creates a SQLite database in the current directory if it doesn't exist
+        conn = sqlite3.connect(db_file)
+        print(f"Connected to {db_file}")
         return conn
     except Error as e:
         print(e)
-
     return conn
 
 def create_table(conn):
+    """ Create a table to store the data if not exists """
     try:
-        sql_create_table = """ CREATE TABLE IF NOT EXISTS scans (
-                                        id integer PRIMARY KEY,
-                                        ip_address text NOT NULL,
-                                        connection_status text,
-                                        timestamp text NOT NULL
-                                    ); """
-        c = conn.cursor()
-        c.execute(sql_create_table)
+        cursor = conn.cursor()
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS WeatherData (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                node INTEGER,
+                time TEXT,
+                temperature REAL,
+                humidity REAL,
+                pressure REAL
+            )
+        """)
+        print("Table created successfully")
     except Error as e:
         print(e)
 
-def insert_scan(conn, scan):
+def insert_data(conn, node, time, temp, hum, pres):
+    """ Insert data into the table """
     try:
-        sql_insert_scan = ''' INSERT INTO scans(ip_address,connection_status,timestamp)
-                              VALUES(?,?,?) '''
-        c = conn.cursor()
-        c.execute(sql_insert_scan, scan)
-        return c.lastrowid
-    except Error as e:
-        print(e)
-
-def select_all_scans(conn):
-    try:
-        c = conn.cursor()
-        c.execute("SELECT * FROM scans")
-
-        rows = c.fetchall()
-
-        for row in rows:
-            print(row)
+        print("ik ben hier")
+        cursor = conn.cursor()
+        cursor.execute("""
+            INSERT INTO WeatherData (node, time, temperature, humidity, pressure)
+            VALUES (?, ?, ?, ?, ?)
+        """, (node, time, temp, hum, pres))
+        conn.commit()
+        print("Data inserted successfully")
     except Error as e:
         print(e)
 
@@ -123,6 +128,11 @@ def scan_and_connect(ip_range):
                     kaas=line
                #     print(line, end='')
                     function(line)
+
+                  
+                    
+
+               
                     file.write(line)
 
                 last_size = -1
@@ -132,7 +142,7 @@ def scan_and_connect(ip_range):
                         current_size = os.path.getsize("boost_output.txt")
                     except OSError:
                         current_size = 0
-
+       
                     if current_size == last_size:
                         no_change_counter += 1
                     else:
@@ -146,19 +156,11 @@ def scan_and_connect(ip_range):
                     last_size = current_size
                     time.sleep(5)  # Wait for 5 seconds
 
-                # Insert scan into the database
-                conn = create_connection()
-                if conn is not None:
-                    create_table(conn)
-                    scan = (ip_address, "Connected", datetime.now()) # Replace "Connected" with actual connection status
-                    insert_scan(conn, scan)
-                    conn.commit()
-                else:
-                    print("Error! cannot create the database connection.")
+
             except Exception as e:
                 print("Error running subprocess:", e)
 
-
+        
 
 
 
@@ -170,7 +172,7 @@ def function(json_string):
     if 'event:receive'in fixed_kaas:
 #        print(fixed_kaas)
         splitter(fixed_kaas)
-        return(fixed_kaas)
+        return node,time,temp,hum,pres
     else:
         print(json_string)
 
@@ -216,8 +218,8 @@ def splitter(event_line):
     print(f'Temperature: {temp}')
     print(f'Humidity: {hum}')
     print(f'Pressure: {pres}')
-
-    return node,time,temp,hum,pres
+    insert_data(conn, node, time, temp, hum, pres)
+    #return node,time,temp,hum,pres
 
 
 
@@ -238,6 +240,15 @@ def splitter(event_line):
 
 
 if __name__ == "__main__":
+    # SQLite database file
+    db_file = "WeatherData.db"
+
+    # Connect to the database
+    conn = create_connection(db_file)
+
+    # Create the table if not exists
+    create_table(conn)
+
     while True:
         ip_range = get_ip_range()
 
