@@ -9,7 +9,7 @@
 #define MESH_PORT       5555
 
 Adafruit_BME280 bme;
-int nodeNumber = 1;
+int nodeNumber = 3;
 String readings;
 
 Scheduler userScheduler;
